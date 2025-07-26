@@ -84,42 +84,55 @@ public class AlgoliaService {
     }
     
     /**
-     * Helper method to extract hits from search results, handling different API versions
+     * Helper method to extract hits from search results, handling Algolia API response format
      */
     @SuppressWarnings("unchecked")
     private <T> List<T> extractHitsFromResult(Object searchResult) {
+        if (searchResult == null) {
+            log.warn("Search result is null");
+            return new ArrayList<>();
+        }
+        
         try {
-            // Try getHits() first (common method name)
+            // First, try the standard Algolia SearchResponse.getHits() method
             var getHitsMethod = searchResult.getClass().getMethod("getHits");
             Object hits = getHitsMethod.invoke(searchResult);
             if (hits instanceof List) {
-                return (List<T>) hits;
+                List<T> result = (List<T>) hits;
+                log.debug("Successfully extracted {} hits using getHits() method", result.size());
+                return result;
             }
         } catch (Exception e) {
-            // Method not found or failed, try alternatives
+            log.debug("getHits() method not available or failed: {}", e.getMessage());
         }
         
         try {
-            // Try getItems() (alternative method name)
+            // Try alternative method names
             var getItemsMethod = searchResult.getClass().getMethod("getItems");
             Object items = getItemsMethod.invoke(searchResult);
             if (items instanceof List) {
-                return (List<T>) items;
+                List<T> result = (List<T>) items;
+                log.debug("Successfully extracted {} items using getItems() method", result.size());
+                return result;
             }
         } catch (Exception e) {
-            // Method not found or failed
+            log.debug("getItems() method not available or failed: {}", e.getMessage());
         }
         
-        // Log available methods for debugging
-        log.warn("Could not extract hits from search result. Available methods:");
+        // If reflection fails, log the actual response structure for debugging
+        log.error("Failed to extract hits from search result. Result type: {}", searchResult.getClass().getName());
+        log.error("Available methods:");
         for (var method : searchResult.getClass().getMethods()) {
             if (method.getName().toLowerCase().contains("hit") || 
                 method.getName().toLowerCase().contains("item") ||
-                method.getName().toLowerCase().contains("result")) {
-                log.warn("  - {}", method.getName());
+                method.getName().toLowerCase().contains("result") ||
+                method.getName().toLowerCase().contains("get")) {
+                log.error("  - {} returns {}", method.getName(), method.getReturnType().getSimpleName());
             }
         }
         
+        // Return empty list to prevent null pointer exceptions
+        log.warn("Returning empty list due to extraction failure");
         return new ArrayList<>();
     }
     
@@ -137,17 +150,27 @@ public class AlgoliaService {
             
             SearchMethodParams params = new SearchMethodParams().addRequests(searchForHits);
             
-            // Perform the search
+            log.debug("Executing search for user events with params: index={}, userId={}, limit={}", 
+                     userEventsIndexName, userId, limit);
+            
+            // Perform the search with better error handling
             SearchResponses<UserEvent> response = searchClient.search(params, UserEvent.class);
             List<UserEvent> hits = new ArrayList<>();
             
-            if (response.getResults() != null && !response.getResults().isEmpty()) {
+            if (response != null && response.getResults() != null && !response.getResults().isEmpty()) {
                 var result = response.getResults().get(0);
+                log.debug("Search response received, extracting hits from result type: {}", 
+                         result.getClass().getSimpleName());
                 hits = extractHitsFromResult(result);
+            } else {
+                log.debug("No search results found for user: {}", userId);
             }
             
             log.info("Retrieved {} behavior events for user: {}", hits.size(), userId);
             return CompletableFuture.completedFuture(hits);
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            log.error("JSON deserialization error for user {}: {}", userId, e.getMessage(), e);
+            return CompletableFuture.completedFuture(Collections.emptyList());
         } catch (Exception e) {
             log.error("Failed to retrieve behavior history for user {}: {}", userId, e.getMessage(), e);
             return CompletableFuture.completedFuture(Collections.emptyList());
@@ -166,15 +189,23 @@ public class AlgoliaService {
                     .setHitsPerPage(1);
             
             SearchMethodParams params = new SearchMethodParams().addRequests(searchForHits);
+            
+            log.debug("Executing product search with params: index={}, productId={}", 
+                     productsIndexName, productId);
+            
             SearchResponses<Product> response = searchClient.search(params, Product.class);
             
             Product product = null;
-            if (response.getResults() != null && !response.getResults().isEmpty()) {
+            if (response != null && response.getResults() != null && !response.getResults().isEmpty()) {
                 var result = response.getResults().get(0);
+                log.debug("Product search response received, extracting hits from result type: {}", 
+                         result.getClass().getSimpleName());
                 List<Product> hits = extractHitsFromResult(result);
                 if (!hits.isEmpty()) {
                     product = hits.get(0);
                 }
+            } else {
+                log.debug("No search results found for product: {}", productId);
             }
             
             if (product != null) {
@@ -183,6 +214,9 @@ public class AlgoliaService {
                 log.warn("Product not found: {}", productId);
             }
             return CompletableFuture.completedFuture(product);
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            log.error("JSON deserialization error for product {}: {}", productId, e.getMessage(), e);
+            return CompletableFuture.completedFuture(null);
         } catch (Exception e) {
             log.error("Failed to retrieve product {}: {}", productId, e.getMessage(), e);
             return CompletableFuture.completedFuture(null);
