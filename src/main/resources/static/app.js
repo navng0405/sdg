@@ -2,7 +2,7 @@
 class SmartDiscountGenerator {
     constructor() {
         this.apiBaseUrl = 'http://localhost:8080/api';
-        this.currentUserId = 'user-005';
+        this.currentUserId = 'user-001';
         this.currentProduct = {
             id: 'PROD001',
             name: 'Wireless Bluetooth Headphones',
