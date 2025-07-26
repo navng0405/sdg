@@ -71,7 +71,9 @@ public class AlgoliaService {
             }
             
             // Save the user event using the correct API method
-            searchClient.saveObject(userEventsIndexName, userEvent);
+            log.debug("Saving user event to index: {} with data: {}", userEventsIndexName, userEvent);
+            var response = searchClient.saveObject(userEventsIndexName, userEvent);
+            log.debug("Save response for user event {}: {}", userEvent.getObjectId(), response);
             log.info("Successfully stored user event: {}", userEvent.getObjectId());
             
             return CompletableFuture.completedFuture(null);
@@ -275,11 +277,27 @@ public class AlgoliaService {
                             .build()
             );
             
+            log.info("Attempting to save {} products to index: {}", sampleProducts.size(), productsIndexName);
+            
             // Save products one by one using the correct API method
             for (Product product : sampleProducts) {
-                searchClient.saveObject(productsIndexName, product);
+                try {
+                    log.debug("Saving product: {} to index: {}", product.getObjectId(), productsIndexName);
+                    var response = searchClient.saveObject(productsIndexName, product);
+                    log.debug("Save response for {}: {}", product.getObjectId(), response);
+                } catch (Exception saveException) {
+                    log.error("Failed to save product {}: {}", product.getObjectId(), saveException.getMessage(), saveException);
+                }
             }
+            
+            // Add a small delay to allow Algolia to process the data
+            Thread.sleep(2000);
+            
             log.info("Products index initialized with {} sample products", sampleProducts.size());
+            
+            // Verify data was saved by doing a test search
+            verifyProductsIndexData();
+            
         } catch (Exception e) {
             log.error("Failed to initialize products index: {}", e.getMessage(), e);
         }
@@ -358,6 +376,36 @@ public class AlgoliaService {
         } catch (Exception e) {
             log.error("Failed to fetch top search queries from Algolia analytics: {}", e.getMessage(), e);
             return Collections.emptyList();
+        }
+    }
+    
+    private void verifyProductsIndexData() {
+        try {
+            log.info("Verifying products index data...");
+            
+            // Try to search for all products
+            SearchForHits searchForHits = new SearchForHits()
+                    .setIndexName(productsIndexName)
+                    .setQuery("") // Empty query to get all records
+                    .setHitsPerPage(10);
+            
+            SearchMethodParams params = new SearchMethodParams().addRequests(searchForHits);
+            SearchResponses<Product> response = searchClient.search(params, Product.class);
+            
+            if (response.getResults() != null && !response.getResults().isEmpty()) {
+                var result = response.getResults().get(0);
+                List<Product> hits = extractHitsFromResult(result);
+                log.info("Verification: Found {} products in index", hits.size());
+                
+                for (Product product : hits) {
+                    log.debug("Found product: {} - {}", product.getObjectId(), product.getName());
+                }
+            } else {
+                log.warn("Verification: No products found in index - this indicates a data storage issue");
+            }
+            
+        } catch (Exception e) {
+            log.error("Failed to verify products index data: {}", e.getMessage(), e);
         }
     }
 }
