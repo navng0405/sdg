@@ -115,7 +115,7 @@ public class DiscountService {
         String uniqueId = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         String userSuffix = userId.substring(Math.max(0, userId.length() - 3)).toUpperCase();
         
-        return String.format("%s%s-%s", prefix, (int)discount.getValue(), userSuffix);
+        return String.format("%s%s-%s", prefix, Math.round(discount.getValue()), userSuffix);
     }
     
     public void storeActiveDiscount(Discount discount) {

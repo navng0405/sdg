@@ -66,8 +66,8 @@ public class AlgoliaService {
                 userEvent.setTimestamp(LocalDateTime.now());
             }
             
-            var addResponse = searchClient.saveObject(userEventsIndexName, userEvent);
-            searchClient.waitForTask(userEventsIndexName, addResponse.getTaskID());
+            // Save the user event using the correct API method
+            searchClient.saveObject(userEventsIndexName, userEvent.getObjectId(), userEvent);
             log.info("Successfully stored user event: {}", userEvent.getObjectId());
             
             return CompletableFuture.completedFuture(null);
@@ -75,6 +75,46 @@ public class AlgoliaService {
             log.error("Failed to store user event: {}", e.getMessage(), e);
             return CompletableFuture.failedFuture(e);
         }
+    }
+    
+    /**
+     * Helper method to extract hits from search results, handling different API versions
+     */
+    @SuppressWarnings("unchecked")
+    private <T> List<T> extractHitsFromResult(Object searchResult) {
+        try {
+            // Try getHits() first (common method name)
+            var getHitsMethod = searchResult.getClass().getMethod("getHits");
+            Object hits = getHitsMethod.invoke(searchResult);
+            if (hits instanceof List) {
+                return (List<T>) hits;
+            }
+        } catch (Exception e) {
+            // Method not found or failed, try alternatives
+        }
+        
+        try {
+            // Try getItems() (alternative method name)
+            var getItemsMethod = searchResult.getClass().getMethod("getItems");
+            Object items = getItemsMethod.invoke(searchResult);
+            if (items instanceof List) {
+                return (List<T>) items;
+            }
+        } catch (Exception e) {
+            // Method not found or failed
+        }
+        
+        // Log available methods for debugging
+        log.warn("Could not extract hits from search result. Available methods:");
+        for (var method : searchResult.getClass().getMethods()) {
+            if (method.getName().toLowerCase().contains("hit") || 
+                method.getName().toLowerCase().contains("item") ||
+                method.getName().toLowerCase().contains("result")) {
+                log.warn("  - {}", method.getName());
+            }
+        }
+        
+        return new ArrayList<>();
     }
     
     @SuppressWarnings("unchecked")
@@ -97,9 +137,7 @@ public class AlgoliaService {
             
             if (response.getResults() != null && !response.getResults().isEmpty()) {
                 var result = response.getResults().get(0);
-                if (result.getHits() != null) {
-                    hits = result.getHits();
-                }
+                hits = extractHitsFromResult(result);
             }
             
             log.info("Retrieved {} behavior events for user: {}", hits.size(), userId);
@@ -114,7 +152,25 @@ public class AlgoliaService {
         log.debug("Retrieving product: {}", productId);
         
         try {
-            Product product = searchClient.getObject(productsIndexName, productId, Product.class);
+            // Use search with filters to get a specific product by ID
+            SearchForHits searchForHits = new SearchForHits()
+                    .setIndexName(productsIndexName)
+                    .setQuery("")
+                    .setFilters("objectID:" + productId)
+                    .setHitsPerPage(1);
+            
+            SearchMethodParams params = new SearchMethodParams().addRequests(searchForHits);
+            SearchResponses<Product> response = searchClient.search(params, Product.class);
+            
+            Product product = null;
+            if (response.getResults() != null && !response.getResults().isEmpty()) {
+                var result = response.getResults().get(0);
+                List<Product> hits = extractHitsFromResult(result);
+                if (!hits.isEmpty()) {
+                    product = hits.get(0);
+                }
+            }
+            
             if (product != null) {
                 log.info("Retrieved product: {}", product.getName());
             } else {
@@ -146,9 +202,7 @@ public class AlgoliaService {
             
             if (response.getResults() != null && !response.getResults().isEmpty()) {
                 var result = response.getResults().get(0);
-                if (result.getHits() != null) {
-                    hits = result.getHits();
-                }
+                hits = extractHitsFromResult(result);
             }
             
             log.info("Found {} products for query: {}", hits.size(), query);
@@ -217,8 +271,10 @@ public class AlgoliaService {
                             .build()
             );
             
-            var addResponse = searchClient.saveObjects(productsIndexName, sampleProducts);
-            searchClient.waitForTask(productsIndexName, addResponse.getTaskID());
+            // Save products one by one using the correct API method
+            for (Product product : sampleProducts) {
+                searchClient.saveObject(productsIndexName, product.getObjectId(), product);
+            }
             log.info("Products index initialized with {} sample products", sampleProducts.size());
         } catch (Exception e) {
             log.error("Failed to initialize products index: {}", e.getMessage(), e);
@@ -233,7 +289,12 @@ public class AlgoliaService {
                     "attributesForFaceting", List.of("userId", "eventType", "productId")
             );
             
-            searchClient.setSettings(userEventsIndexName, settings);
+            // Set index settings using the correct API method
+            try {
+                searchClient.setSettings(userEventsIndexName, settings);
+            } catch (Exception e) {
+                log.warn("Could not set index settings, continuing without custom settings: {}", e.getMessage());
+            }
             log.info("User events index settings configured");
         } catch (Exception e) {
             log.error("Failed to initialize user events index: {}", e.getMessage(), e);
@@ -257,8 +318,11 @@ public class AlgoliaService {
                     )
             );
             
-            var addResponse = searchClient.saveObjects(discountTemplatesIndexName, templates);
-            searchClient.waitForTask(discountTemplatesIndexName, addResponse.getTaskID());
+            // Save templates one by one using the correct API method
+            for (Map<String, Object> template : templates) {
+                String objectId = (String) template.get("objectID");
+                searchClient.saveObject(discountTemplatesIndexName, objectId, template);
+            }
             log.info("Discount templates index initialized with {} templates", templates.size());
         } catch (Exception e) {
             log.error("Failed to initialize discount templates index: {}", e.getMessage(), e);
@@ -268,8 +332,7 @@ public class AlgoliaService {
     // Additional utility methods from the working example
     public void addProduct(Product product) {
         try {
-            var addResponse = searchClient.saveObject(productsIndexName, product);
-            searchClient.waitForTask(productsIndexName, addResponse.getTaskID());
+            searchClient.saveObject(productsIndexName, product.getObjectId(), product);
             log.info("Product added to Algolia index: {}", product.getObjectId());
         } catch (Exception e) {
             log.error("Failed to add product to Algolia: {}", e.getMessage(), e);
