@@ -283,11 +283,10 @@ public class AlgoliaService {
     
     private void initializeUserEventsIndex() {
         try {
-            // Set up index settings for user events
-            Map<String, Object> settings = Map.of(
-                    "searchableAttributes", List.of("userId", "eventType", "query"),
-                    "attributesForFaceting", List.of("userId", "eventType", "productId")
-            );
+            // Set up index settings for user events using IndexSettings object
+            com.algolia.model.search.IndexSettings settings = new com.algolia.model.search.IndexSettings()
+                    .setSearchableAttributes(List.of("userId", "eventType", "query"))
+                    .setAttributesForFaceting(List.of("userId", "eventType", "productId"));
             
             // Set index settings using the correct API method
             try {
