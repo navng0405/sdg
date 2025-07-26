@@ -84,6 +84,166 @@ public class AlgoliaService {
     }
     
     /**
+     * Manually extract UserEvent objects from raw Algolia search result
+     */
+    @SuppressWarnings("unchecked")
+    private List<UserEvent> extractUserEventsFromRawResult(Object searchResult) {
+        List<UserEvent> userEvents = new ArrayList<>();
+        
+        try {
+            // Try to get hits from the raw result using reflection
+            var getHitsMethod = searchResult.getClass().getMethod("getHits");
+            Object hitsObj = getHitsMethod.invoke(searchResult);
+            
+            if (hitsObj instanceof List) {
+                List<Object> hits = (List<Object>) hitsObj;
+                
+                for (Object hit : hits) {
+                    try {
+                        UserEvent userEvent = convertRawHitToUserEvent(hit);
+                        if (userEvent != null) {
+                            userEvents.add(userEvent);
+                        }
+                    } catch (Exception e) {
+                        log.warn("Failed to convert hit to UserEvent: {}", e.getMessage());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to extract UserEvents from raw result: {}", e.getMessage(), e);
+        }
+        
+        return userEvents;
+    }
+    
+    /**
+     * Convert a raw hit object to UserEvent
+     */
+    @SuppressWarnings("unchecked")
+    private UserEvent convertRawHitToUserEvent(Object hit) {
+        try {
+            if (hit instanceof Map) {
+                Map<String, Object> hitMap = (Map<String, Object>) hit;
+                
+                UserEvent.UserEventBuilder builder = UserEvent.builder()
+                        .objectId((String) hitMap.get("objectID"))
+                        .userId((String) hitMap.get("userId"))
+                        .eventType((String) hitMap.get("eventType"))
+                        .productId((String) hitMap.get("productId"))
+                        .query((String) hitMap.get("query"));
+                
+                // Handle timestamp
+                Object timestampObj = hitMap.get("timestamp");
+                if (timestampObj instanceof String) {
+                    try {
+                        LocalDateTime timestamp = LocalDateTime.parse((String) timestampObj, 
+                                java.time.format.DateTimeFormatter.ISO_DATE_TIME);
+                        builder.timestamp(timestamp);
+                    } catch (Exception e) {
+                        log.debug("Failed to parse timestamp, using current time: {}", e.getMessage());
+                        builder.timestamp(LocalDateTime.now());
+                    }
+                }
+                
+                // Handle details
+                Object detailsObj = hitMap.get("details");
+                if (detailsObj instanceof Map) {
+                    builder.details((Map<String, Object>) detailsObj);
+                }
+                
+                return builder.build();
+            }
+        } catch (Exception e) {
+            log.error("Failed to convert raw hit to UserEvent: {}", e.getMessage(), e);
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Manually extract Product objects from raw Algolia search result
+     */
+    @SuppressWarnings("unchecked")
+    private List<Product> extractProductsFromRawResult(Object searchResult) {
+        List<Product> products = new ArrayList<>();
+        
+        try {
+            // Try to get hits from the raw result using reflection
+            var getHitsMethod = searchResult.getClass().getMethod("getHits");
+            Object hitsObj = getHitsMethod.invoke(searchResult);
+            
+            if (hitsObj instanceof List) {
+                List<Object> hits = (List<Object>) hitsObj;
+                
+                for (Object hit : hits) {
+                    try {
+                        Product product = convertRawHitToProduct(hit);
+                        if (product != null) {
+                            products.add(product);
+                        }
+                    } catch (Exception e) {
+                        log.warn("Failed to convert hit to Product: {}", e.getMessage());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to extract Products from raw result: {}", e.getMessage(), e);
+        }
+        
+        return products;
+    }
+    
+    /**
+     * Convert a raw hit object to Product
+     */
+    @SuppressWarnings("unchecked")
+    private Product convertRawHitToProduct(Object hit) {
+        try {
+            if (hit instanceof Map) {
+                Map<String, Object> hitMap = (Map<String, Object>) hit;
+                
+                Product.ProductBuilder builder = Product.builder()
+                        .objectId((String) hitMap.get("objectID"))
+                        .name((String) hitMap.get("name"))
+                        .description((String) hitMap.get("description"))
+                        .category((String) hitMap.get("category"));
+                
+                // Handle price
+                Object priceObj = hitMap.get("price");
+                if (priceObj != null) {
+                    if (priceObj instanceof Number) {
+                        builder.price(new java.math.BigDecimal(priceObj.toString()));
+                    } else if (priceObj instanceof String) {
+                        try {
+                            builder.price(new java.math.BigDecimal((String) priceObj));
+                        } catch (NumberFormatException e) {
+                            log.debug("Failed to parse price: {}", priceObj);
+                        }
+                    }
+                }
+                
+                // Handle profit margin
+                Object profitMarginObj = hitMap.get("profitMargin");
+                if (profitMarginObj instanceof Number) {
+                    builder.profitMargin(((Number) profitMarginObj).doubleValue());
+                }
+                
+                // Handle inventory level
+                Object inventoryObj = hitMap.get("inventoryLevel");
+                if (inventoryObj instanceof Number) {
+                    builder.inventoryLevel(((Number) inventoryObj).intValue());
+                }
+                
+                return builder.build();
+            }
+        } catch (Exception e) {
+            log.error("Failed to convert raw hit to Product: {}", e.getMessage(), e);
+        }
+        
+        return null;
+    }
+    
+    /**
      * Helper method to extract hits from search results, handling Algolia API response format
      */
     @SuppressWarnings("unchecked")
@@ -141,7 +301,7 @@ public class AlgoliaService {
         log.debug("Retrieving behavior history for user: {}", userId);
         
         try {
-            // Build the search request
+            // Use raw JSON search to avoid deserialization issues
             SearchForHits searchForHits = new SearchForHits()
                     .setIndexName(userEventsIndexName)
                     .setQuery("")
@@ -153,15 +313,17 @@ public class AlgoliaService {
             log.debug("Executing search for user events with params: index={}, userId={}, limit={}", 
                      userEventsIndexName, userId, limit);
             
-            // Perform the search with better error handling
-            SearchResponses<UserEvent> response = searchClient.search(params, UserEvent.class);
+            // Perform raw search without type deserialization
+            var response = searchClient.search(params, Object.class);
             List<UserEvent> hits = new ArrayList<>();
             
             if (response != null && response.getResults() != null && !response.getResults().isEmpty()) {
                 var result = response.getResults().get(0);
                 log.debug("Search response received, extracting hits from result type: {}", 
                          result.getClass().getSimpleName());
-                hits = extractHitsFromResult(result);
+                
+                // Extract hits manually from the raw response
+                hits = extractUserEventsFromRawResult(result);
             } else {
                 log.debug("No search results found for user: {}", userId);
             }
@@ -178,7 +340,7 @@ public class AlgoliaService {
         log.debug("Retrieving product: {}", productId);
         
         try {
-            // Use search with filters to get a specific product by ID
+            // Use raw JSON search to avoid deserialization issues
             SearchForHits searchForHits = new SearchForHits()
                     .setIndexName(productsIndexName)
                     .setQuery("")
@@ -190,14 +352,17 @@ public class AlgoliaService {
             log.debug("Executing product search with params: index={}, productId={}", 
                      productsIndexName, productId);
             
-            SearchResponses<Product> response = searchClient.search(params, Product.class);
+            // Perform raw search without type deserialization
+            var response = searchClient.search(params, Object.class);
             
             Product product = null;
             if (response != null && response.getResults() != null && !response.getResults().isEmpty()) {
                 var result = response.getResults().get(0);
                 log.debug("Product search response received, extracting hits from result type: {}", 
                          result.getClass().getSimpleName());
-                List<Product> hits = extractHitsFromResult(result);
+                
+                // Extract product manually from the raw response
+                List<Product> hits = extractProductsFromRawResult(result);
                 if (!hits.isEmpty()) {
                     product = hits.get(0);
                 }
