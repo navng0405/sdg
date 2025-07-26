@@ -55,10 +55,17 @@
 		</dependency>
 
 		<!-- Algolia Search Client -->
+		<!-- Algolia Search -->
 		<dependency>
 			<groupId>com.algolia</groupId>
 			<artifactId>algoliasearch</artifactId>
-			<version>4.2.0</version>
+			<version>4.21.2</version>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<!-- HTTP Client for Gemini API -->
