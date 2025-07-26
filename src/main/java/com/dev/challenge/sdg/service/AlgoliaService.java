@@ -67,7 +67,7 @@ public class AlgoliaService {
             }
             
             // Save the user event using the correct API method
-            searchClient.saveObject(userEventsIndexName, userEvent.getObjectId(), userEvent);
+            searchClient.saveObject(userEventsIndexName, userEvent);
             log.info("Successfully stored user event: {}", userEvent.getObjectId());
             
             return CompletableFuture.completedFuture(null);
@@ -273,7 +273,7 @@ public class AlgoliaService {
             
             // Save products one by one using the correct API method
             for (Product product : sampleProducts) {
-                searchClient.saveObject(productsIndexName, product.getObjectId(), product);
+                searchClient.saveObject(productsIndexName, product);
             }
             log.info("Products index initialized with {} sample products", sampleProducts.size());
         } catch (Exception e) {
@@ -320,8 +320,7 @@ public class AlgoliaService {
             
             // Save templates one by one using the correct API method
             for (Map<String, Object> template : templates) {
-                String objectId = (String) template.get("objectID");
-                searchClient.saveObject(discountTemplatesIndexName, objectId, template);
+                searchClient.saveObject(discountTemplatesIndexName, template);
             }
             log.info("Discount templates index initialized with {} templates", templates.size());
         } catch (Exception e) {
@@ -332,7 +331,7 @@ public class AlgoliaService {
     // Additional utility methods from the working example
     public void addProduct(Product product) {
         try {
-            searchClient.saveObject(productsIndexName, product.getObjectId(), product);
+            searchClient.saveObject(productsIndexName, product);
             log.info("Product added to Algolia index: {}", product.getObjectId());
         } catch (Exception e) {
             log.error("Failed to add product to Algolia: {}", e.getMessage(), e);
