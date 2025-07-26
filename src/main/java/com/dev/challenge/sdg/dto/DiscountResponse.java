@@ -2,12 +2,10 @@ package com.dev.challenge.sdg.dto;
 
 import com.dev.challenge.sdg.model.Discount;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class DiscountResponse {
@@ -17,16 +15,16 @@ public class DiscountResponse {
     private Discount discount;
     
     public static DiscountResponse offerGenerated(Discount discount) {
-        return DiscountResponse.builder()
-                .status("offer_generated")
-                .discount(discount)
-                .build();
+        DiscountResponse response = new DiscountResponse();
+        response.setStatus("offer_generated");
+        response.setDiscount(discount);
+        return response;
     }
     
     public static DiscountResponse noOffer(String message) {
-        return DiscountResponse.builder()
-                .status("no_offer")
-                .message(message)
-                .build();
+        DiscountResponse response = new DiscountResponse();
+        response.setStatus("no_offer");
+        response.setMessage(message);
+        return response;
     }
 }
