@@ -26,6 +26,13 @@ algolia:
     user-events: sdg_user_events
     discount-templates: sdg_discount_templates
 
+# MCP Server Configuration
+mcp:
+  server:
+    name: algolia-smart-discount-generator
+    version: 1.0.0
+    description: Smart Discount Generator with Algolia integration and AI-powered discount generation
+
 # Discount Configuration
 discount:
   default-expiry-minutes: 30
