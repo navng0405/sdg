@@ -256,13 +256,13 @@ public class McpToolService {
             
             // Create UserEvent for conversion tracking
             UserEvent conversionEvent = UserEvent.builder()
+                    .objectId(UUID.randomUUID().toString())
                     .userId(userId)
                     .eventType("discount_conversion")
                     .productId(null) // Not applicable for conversion events
                     .query(null)
                     .timestamp(LocalDateTime.now())
-                    .sessionId(UUID.randomUUID().toString())
-                    .metadata(Map.of(
+                    .details(Map.of(
                             "discountCode", discountCode,
                             "conversionStatus", conversionStatus,
                             "eventType", "discount_conversion"
