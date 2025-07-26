@@ -1,7 +1,7 @@
 package com.dev.challenge.sdg.config;
 
-import com.algolia.search.DefaultSearchClient;
-import com.algolia.search.SearchClient;
+import com.algolia.api.SearchClient;
+import com.algolia.api.AnalyticsClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -20,6 +20,12 @@ public class AlgoliaConfig {
     @Bean
     public SearchClient algoliaSearchClient() {
         log.info("Initializing Algolia Search Client with Application ID: {}", applicationId);
-        return DefaultSearchClient.create(applicationId, adminApiKey);
+        return new SearchClient(applicationId, adminApiKey);
+    }
+    
+    @Bean
+    public AnalyticsClient algoliaAnalyticsClient() {
+        log.info("Initializing Algolia Analytics Client with Application ID: {}", applicationId);
+        return new AnalyticsClient(applicationId, adminApiKey);
     }
 }
