@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -22,6 +24,7 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 public class GeminiService {
     
+    private static final Logger log = LoggerFactory.getLogger(GeminiService.class);
     private final WebClient.Builder webClientBuilder;
     private final ObjectMapper objectMapper;
     

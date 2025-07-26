@@ -3,6 +3,8 @@ package com.dev.challenge.sdg.config;
 import com.dev.challenge.sdg.service.AlgoliaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ApplicationInitializer implements CommandLineRunner {
     
+    private static final Logger log = LoggerFactory.getLogger(ApplicationInitializer.class);
     private final AlgoliaService algoliaService;
     
     @Override
