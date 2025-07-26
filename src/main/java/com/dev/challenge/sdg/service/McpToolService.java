@@ -1,6 +1,7 @@
 package com.dev.challenge.sdg.service;
 
 import com.dev.challenge.sdg.dto.McpResponse;
+import com.dev.challenge.sdg.model.UserEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 
 /**
@@ -107,7 +109,7 @@ public class McpToolService {
         log.info("Analyzing hesitation data for user: {}", userId);
         
         try {
-            CompletableFuture<List<com.dev.challenge.sdg.model.UserEvent>> behaviorFuture = 
+            CompletableFuture<List<UserEvent>> behaviorFuture =
                 algoliaService.getUserBehaviorHistory(userId, 50);
             List<com.dev.challenge.sdg.model.UserEvent> userEvents = behaviorFuture.get();
             

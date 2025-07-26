@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.time.OffsetTime;
 
 @Data
 @Builder
@@ -26,8 +27,9 @@ public class UserEvent {
     
     @JsonProperty("eventType")
     private String eventType;
-    
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
+
+    @JsonProperty("timestamp")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ssX", timezone = "UTC")
     private LocalDateTime timestamp;
     
     @JsonProperty("productId")

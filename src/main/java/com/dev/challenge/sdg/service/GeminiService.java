@@ -31,7 +31,7 @@ public class GeminiService {
     @Value("${gemini.api-key}")
     private String apiKey;
     
-    @Value("${gemini.api-url}")
+    @Value("${gemini.base-url}")
     private String apiUrl;
     
     @Value("${discount.max-discount-percentage}")

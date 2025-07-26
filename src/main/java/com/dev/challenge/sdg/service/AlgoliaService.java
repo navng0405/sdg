@@ -23,7 +23,7 @@ import java.util.concurrent.CompletableFuture;
 @Service
 public class AlgoliaService {
     
-    private static final Logger log = LoggerFactory.getLogger(AlgoliaService.class);
+
     
     private final SearchClient searchClient;
     private final AnalyticsClient analyticsClient;
@@ -168,9 +168,6 @@ public class AlgoliaService {
             
             log.info("Retrieved {} behavior events for user: {}", hits.size(), userId);
             return CompletableFuture.completedFuture(hits);
-        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-            log.error("JSON deserialization error for user {}: {}", userId, e.getMessage(), e);
-            return CompletableFuture.completedFuture(Collections.emptyList());
         } catch (Exception e) {
             log.error("Failed to retrieve behavior history for user {}: {}", userId, e.getMessage(), e);
             return CompletableFuture.completedFuture(Collections.emptyList());
@@ -214,9 +211,6 @@ public class AlgoliaService {
                 log.warn("Product not found: {}", productId);
             }
             return CompletableFuture.completedFuture(product);
-        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-            log.error("JSON deserialization error for product {}: {}", productId, e.getMessage(), e);
-            return CompletableFuture.completedFuture(null);
         } catch (Exception e) {
             log.error("Failed to retrieve product {}: {}", productId, e.getMessage(), e);
             return CompletableFuture.completedFuture(null);
