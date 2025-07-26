@@ -218,20 +218,52 @@ public class AlgoliaService {
                             builder.price(new java.math.BigDecimal((String) priceObj));
                         } catch (NumberFormatException e) {
                             log.debug("Failed to parse price: {}", priceObj);
+                            builder.price(new java.math.BigDecimal("0.00")); // Default fallback
                         }
                     }
+                } else {
+                    builder.price(new java.math.BigDecimal("0.00")); // Default fallback
                 }
                 
-                // Handle profit margin
+                // Handle profit margin - CRITICAL: This was causing the NPE
                 Object profitMarginObj = hitMap.get("profitMargin");
                 if (profitMarginObj instanceof Number) {
                     builder.profitMargin(((Number) profitMarginObj).doubleValue());
+                } else {
+                    builder.profitMargin(0.25); // Default 25% profit margin
+                    log.debug("Using default profit margin for product: {}", hitMap.get("objectID"));
                 }
                 
                 // Handle inventory level
                 Object inventoryObj = hitMap.get("inventoryLevel");
                 if (inventoryObj instanceof Number) {
                     builder.inventoryLevel(((Number) inventoryObj).intValue());
+                } else {
+                    builder.inventoryLevel(0); // Default fallback
+                }
+                
+                // Handle average rating
+                Object ratingObj = hitMap.get("averageRating");
+                if (ratingObj instanceof Number) {
+                    builder.averageRating(((Number) ratingObj).doubleValue());
+                } else {
+                    builder.averageRating(4.0); // Default rating
+                }
+                
+                // Handle number of reviews
+                Object reviewsObj = hitMap.get("numberOfReviews");
+                if (reviewsObj instanceof Number) {
+                    builder.numberOfReviews(((Number) reviewsObj).intValue());
+                } else {
+                    builder.numberOfReviews(100); // Default review count
+                }
+                
+                // Handle image URL
+                String imageUrl = (String) hitMap.get("imageUrl");
+                if (imageUrl != null) {
+                    builder.imageUrl(imageUrl);
+                } else {
+                    builder.imageUrl("https://example.com/default-product.jpg"); // Default image
                 }
                 
                 return builder.build();
