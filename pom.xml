@@ -59,6 +59,7 @@
 		<dependency>
 			<groupId>com.algolia</groupId>
 			<artifactId>algoliasearch</artifactId>
+
 			<version>4.21.2</version>
 			<exclusions>
 				<exclusion>
