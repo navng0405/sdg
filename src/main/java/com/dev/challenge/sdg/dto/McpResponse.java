@@ -1,37 +1,44 @@
-package com.dev.challenge.mcp.dto;
+package com.dev.challenge.sdg.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
-import lombok.Builder;
-import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
 
+/**
+ * MCP Response DTO - Represents outgoing MCP JSON-RPC responses
+ */
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class McpResponse {
+    
     private String jsonrpc = "2.0";
     private String id;
     private Object result;
-    private McpError error;
+    private ErrorInfo error;
     
     @Data
-    @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class McpError {
+    public static class ErrorInfo {
         private int code;
         private String message;
         private Object data;
     }
     
     @Data
-    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class InitializeResult {
+        private String protocolVersion;
+        private Map<String, Object> serverInfo;
+        private Map<String, Object> capabilities;
+    }
+    
+    @Data
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ToolsListResult {
@@ -39,7 +46,6 @@ public class McpResponse {
     }
     
     @Data
-    @Builder
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ToolDefinition {
@@ -49,12 +55,11 @@ public class McpResponse {
     }
     
     @Data
-    @Builder
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ToolResult {
-        private String content;
+        private Map<String, Object> content;
         private boolean isError;
-        private Map<String, Object> data;
+        private String errorMessage;
     }
 }

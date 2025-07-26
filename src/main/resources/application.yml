@@ -3,21 +3,12 @@ server:
 
 spring:
   application:
-    name: sdg-api-gateway
+    name: sdg-smart-discount-generator
   jackson:
     serialization:
       write-dates-as-timestamps: false
     deserialization:
       fail-on-unknown-properties: false
-
-# MCP Server connection configuration
-mcp:
-  server:
-    base-url: http://localhost:8081
-    timeout: 30000
-    name: algolia-discount-mcp
-    version: 1.0.0
-    description: Smart Discount Generator MCP Server for Algolia integration
 
 # Gemini configuration for tool calling
 gemini:

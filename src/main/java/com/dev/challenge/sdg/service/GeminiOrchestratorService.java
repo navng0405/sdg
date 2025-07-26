@@ -16,7 +16,7 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * Gemini Orchestrator Service - Handles MCP-centric workflow
- * Orchestrates Gemini conversations with tool calls to Algolia MCP Server
+ * Orchestrates Gemini conversations with direct MCP tool calls (single app architecture)
  */
 @Slf4j
 @Service
@@ -27,7 +27,7 @@ public class GeminiOrchestratorService {
     
     private final WebClient.Builder webClientBuilder;
     private final ObjectMapper objectMapper;
-    private final McpClientService mcpClient;
+    private final McpToolService mcpToolService;
     
     @Value("${gemini.api-key}")
     private String geminiApiKey;
@@ -248,12 +248,11 @@ public class GeminiOrchestratorService {
             // Convert args to Map
             Map<String, Object> parameters = objectMapper.convertValue(args, Map.class);
             
-            // Forward tool call to MCP Server
-            return mcpClient.callMcpTool(functionName, parameters)
-                    .thenCompose(toolResult -> {
-                        // Send tool result back to Gemini for final response
-                        return sendToolResultToGemini(functionName, toolResult, originalResponse);
-                    });
+            // Execute tool directly via McpToolService (no HTTP calls)
+            Map<String, Object> toolResult = mcpToolService.executeTool(functionName, parameters);
+            
+            // Send tool result back to Gemini for final response
+            return sendToolResultToGemini(functionName, toolResult, originalResponse);
                     
         } catch (Exception e) {
             log.error("Error processing function call", e);
@@ -316,25 +315,33 @@ public class GeminiOrchestratorService {
     // Additional methods for other API Gateway endpoints
     
     public CompletableFuture<Void> forwardUserBehaviorToMcp(Map<String, Object> behaviorData) {
-        return mcpClient.callMcpTool("storeUserEvent", behaviorData)
-                .thenApply(result -> null);
+        return CompletableFuture.supplyAsync(() -> {
+            mcpToolService.executeTool("storeUserEvent", behaviorData);
+            return null;
+        });
     }
     
     public CompletableFuture<Boolean> validateDiscountCode(String code, String userId) {
         Map<String, Object> params = Map.of("discountCode", code, "userId", userId);
-        return mcpClient.callMcpTool("validateDiscount", params)
-                .thenApply(result -> (Boolean) result.get("valid"));
+        return CompletableFuture.supplyAsync(() -> {
+            Map<String, Object> result = mcpToolService.executeTool("validateDiscount", params);
+            return (Boolean) result.get("valid");
+        });
     }
     
     public CompletableFuture<Boolean> applyDiscountCode(String code, String userId) {
         Map<String, Object> params = Map.of("discountCode", code, "userId", userId);
-        return mcpClient.callMcpTool("applyDiscount", params)
-                .thenApply(result -> (Boolean) result.get("applied"));
+        return CompletableFuture.supplyAsync(() -> {
+            Map<String, Object> result = mcpToolService.executeTool("applyDiscount", params);
+            return (Boolean) result.get("applied");
+        });
     }
     
     public CompletableFuture<Void> logDiscountConversion(String code, String userId, String status) {
         Map<String, Object> params = Map.of("discountCode", code, "userId", userId, "conversionStatus", status);
-        return mcpClient.callMcpTool("logDiscountConversion", params)
-                .thenApply(result -> null);
+        return CompletableFuture.supplyAsync(() -> {
+            mcpToolService.executeTool("logDiscountConversion", params);
+            return null;
+        });
     }
 }
