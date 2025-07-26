@@ -4,8 +4,7 @@ import com.dev.challenge.sdg.service.GeminiOrchestratorService;
 import com.dev.challenge.sdg.dto.DiscountResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,10 +19,10 @@ import java.util.concurrent.CompletableFuture;
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
+
 public class ApiGatewayController {
     
-    private static final Logger log = LoggerFactory.getLogger(ApiGatewayController.class);
+
     private final GeminiOrchestratorService geminiOrchestrator;
     
     /**
@@ -63,14 +62,14 @@ public class ApiGatewayController {
         return geminiOrchestrator.forwardUserBehaviorToMcp(behaviorData)
                 .thenApply(result -> {
                     log.info("Successfully tracked user behavior for user: {}", userId);
-                    return ResponseEntity.ok(Map.of(
+                    return ResponseEntity.ok(Map.<String, Object>of(
                         "status", "success",
                         "message", "User behavior tracked successfully"
                     ));
                 })
                 .exceptionally(throwable -> {
                     log.error("Error tracking user behavior for user: {}", userId, throwable);
-                    return ResponseEntity.ok(Map.of(
+                    return ResponseEntity.ok(Map.<String, Object>of(
                         "status", "error",
                         "message", "Failed to track user behavior"
                     ));
@@ -89,7 +88,7 @@ public class ApiGatewayController {
         
         return geminiOrchestrator.validateDiscountCode(code, userId)
                 .thenApply(isValid -> {
-                    Map<String, Object> response = Map.of(
+                    Map<String, Object> response = Map.<String, Object>of(
                         "valid", isValid,
                         "code", code,
                         "userId", userId
@@ -98,7 +97,7 @@ public class ApiGatewayController {
                 })
                 .exceptionally(throwable -> {
                     log.error("Error validating discount code: {}", code, throwable);
-                    return ResponseEntity.ok(Map.of(
+                    return ResponseEntity.ok(Map.<String, Object>of(
                         "valid", false,
                         "error", "Validation failed"
                     ));
@@ -123,13 +122,13 @@ public class ApiGatewayController {
                         // Log conversion event via MCP Server
                         geminiOrchestrator.logDiscountConversion(code, userId, "applied");
                         
-                        return ResponseEntity.ok(Map.of(
+                        return ResponseEntity.ok(Map.<String, Object>of(
                             "status", "success",
                             "message", "Discount applied successfully",
                             "code", code
                         ));
                     } else {
-                        return ResponseEntity.ok(Map.of(
+                        return ResponseEntity.ok(Map.<String, Object>of(
                             "status", "error",
                             "message", "Failed to apply discount code"
                         ));
@@ -137,7 +136,7 @@ public class ApiGatewayController {
                 })
                 .exceptionally(throwable -> {
                     log.error("Error applying discount code: {}", code, throwable);
-                    return ResponseEntity.ok(Map.of(
+                    return ResponseEntity.ok(Map.<String, Object>of(
                         "status", "error",
                         "message", "Failed to apply discount"
                     ));

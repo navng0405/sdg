@@ -5,8 +5,7 @@ import com.dev.challenge.sdg.dto.McpResponse;
 import com.dev.challenge.sdg.service.McpToolService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,10 +19,10 @@ import java.util.Map;
 @RestController
 @RequestMapping("/mcp")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
+
 public class McpController {
     
-    private static final Logger log = LoggerFactory.getLogger(McpController.class);
+
     private final McpToolService mcpToolService;
     
     /**
@@ -116,7 +115,7 @@ public class McpController {
             
             McpResponse.ToolResult result = new McpResponse.ToolResult();
             result.setContent(toolResult);
-            result.setIsError(false);
+            result.setError(false);
             
             response.setResult(result);
             log.info("Successfully executed MCP tool: {}", toolName);
