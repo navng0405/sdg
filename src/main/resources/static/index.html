@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Discount Generator - E-commerce Demo</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1><i class="fas fa-shopping-cart"></i> Smart Discount Generator Demo</h1>
+            <p class="subtitle">AI-Powered Real-Time Discount Engine</p>
+        </header>
+
+        <!-- Discount Offer Banner (Initially Hidden) -->
+        <div id="discount-banner" class="discount-banner hidden">
+            <div class="discount-content">
+                <div class="discount-icon">🎉</div>
+                <div class="discount-text">
+                    <h3 id="discount-headline">Special Offer!</h3>
+                    <p id="discount-message">Limited time discount just for you!</p>
+                    <div class="discount-details">
+                        <span id="discount-amount" class="discount-amount">15% OFF</span>
+                        <span id="discount-code" class="discount-code">Code: SAVE15-ABC</span>
+                    </div>
+                </div>
+                <div class="discount-timer">
+                    <i class="fas fa-clock"></i>
+                    <span id="countdown-timer">29:59</span>
+                </div>
+                <button id="claim-discount-btn" class="claim-btn">
+                    <i class="fas fa-gift"></i> Claim Now
+                </button>
+            </div>
+            <button id="close-discount-btn" class="close-btn">&times;</button>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Product Display Area -->
+            <div class="product-section">
+                <div class="product-image">
+                    <img id="product-image" src="https://via.placeholder.com/400x300/4A90E2/FFFFFF?text=Wireless+Headphones" alt="Product Image">
+                </div>
+                <div class="product-info">
+                    <h2 id="product-name">Wireless Bluetooth Headphones</h2>
+                    <p id="product-description">Premium noise-cancelling wireless headphones with 30-hour battery life and superior sound quality.</p>
+                    
+                    <div class="product-rating">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </div>
+                        <span id="product-rating">4.5</span>
+                        <span id="product-reviews">(1,250 reviews)</span>
+                    </div>
+                    
+                    <div class="product-price">
+                        <span id="product-price" class="price">$199.99</span>
+                        <span class="original-price" id="original-price" style="display: none;">$199.99</span>
+                    </div>
+                    
+                    <div class="product-actions">
+                        <button id="add-to-cart-btn" class="btn btn-primary">
+                            <i class="fas fa-shopping-cart"></i> Add to Cart
+                        </button>
+                        <button id="buy-now-btn" class="btn btn-secondary">
+                            <i class="fas fa-bolt"></i> Buy Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Behavior Simulation Panel -->
+            <div class="simulation-panel">
+                <h3><i class="fas fa-cogs"></i> User Behavior Simulation</h3>
+                <p class="panel-description">Simulate different user behaviors to trigger AI-powered discount offers</p>
+                
+                <div class="user-info">
+                    <label for="user-id">User ID:</label>
+                    <input type="text" id="user-id" value="demo-user-123" placeholder="Enter user ID">
+                </div>
+
+                <div class="behavior-buttons">
+                    <button id="simulate-cart-abandon" class="sim-btn" data-event="cart_abandon">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Cart Abandonment</span>
+                        <small>Add to cart then navigate away</small>
+                    </button>
+                    
+                    <button id="simulate-multiple-views" class="sim-btn" data-event="multiple_product_views">
+                        <i class="fas fa-eye"></i>
+                        <span>Multiple Product Views</span>
+                        <small>Browse through several products</small>
+                    </button>
+                    
+                    <button id="simulate-price-hover" class="sim-btn" data-event="price_hover">
+                        <i class="fas fa-mouse-pointer"></i>
+                        <span>Price Hesitation</span>
+                        <small>Hover over price multiple times</small>
+                    </button>
+                    
+                    <button id="simulate-no-results" class="sim-btn" data-event="no_results_search">
+                        <i class="fas fa-search"></i>
+                        <span>Zero Results Search</span>
+                        <small>Search for non-existent items</small>
+                    </button>
+                </div>
+
+                <div class="get-discount-section">
+                    <button id="get-discount-btn" class="btn btn-accent">
+                        <i class="fas fa-magic"></i> Generate AI Discount
+                    </button>
+                </div>
+            </div>
+
+            <!-- User Browse History -->
+            <div class="browse-history">
+                <h4><i class="fas fa-history"></i> User Browse History</h4>
+                <div id="browse-history-content">
+                    <div class="history-item">
+                        <i class="fas fa-search"></i>
+                        <span>Searched for: "wireless headphones"</span>
+                        <time>2 minutes ago</time>
+                    </div>
+                    <div class="history-item">
+                        <i class="fas fa-eye"></i>
+                        <span>Viewed: Smart Watch Series X</span>
+                        <time>5 minutes ago</time>
+                    </div>
+                    <div class="history-item">
+                        <i class="fas fa-search"></i>
+                        <span>Searched for: "bluetooth earbuds"</span>
+                        <time>8 minutes ago</time>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Panel -->
+        <div class="status-panel">
+            <h4><i class="fas fa-info-circle"></i> System Status</h4>
+            <div id="status-content">
+                <div class="status-item">
+                    <span class="status-label">MCP Server:</span>
+                    <span id="mcp-status" class="status-value">Ready</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Algolia:</span>
+                    <span id="algolia-status" class="status-value">Connected</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">AI Engine:</span>
+                    <span id="ai-status" class="status-value">Active</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Active Discounts:</span>
+                    <span id="active-discounts-count" class="status-value">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Generating personalized discount...</p>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="success-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-check-circle"></i> Discount Applied!</h3>
+                <button id="close-modal-btn" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Your discount has been successfully applied to your cart.</p>
+                <div class="savings-info">
+                    <span>You saved: <strong id="savings-amount">$29.99</strong></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="continue-shopping-btn" class="btn btn-primary">Continue Shopping</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
