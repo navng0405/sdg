@@ -27,4 +27,22 @@ public class DiscountResponse {
         response.setMessage(message);
         return response;
     }
+    
+    public static DiscountResponse withOffer(String discountCode, String discountType, 
+                                           double discountValue, String message, int expiresInSeconds) {
+        DiscountResponse response = new DiscountResponse();
+        response.setStatus("offer_generated");
+        response.setMessage(message);
+        
+        // Create discount object
+        Discount discount = new Discount();
+        discount.setCode(discountCode);
+        discount.setType(discountType);
+        discount.setValue(discountValue);
+        discount.setMessage(message);
+        discount.setExpiresInSeconds(expiresInSeconds);
+        
+        response.setDiscount(discount);
+        return response;
+    }
 }

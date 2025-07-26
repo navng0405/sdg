@@ -1,0 +1,38 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: algolia-mcp-server
+
+# Algolia Configuration
+algolia:
+  application-id: ${ALGOLIA_APPLICATION_ID:your-algolia-app-id}
+  admin-api-key: ${ALGOLIA_ADMIN_API_KEY:your-algolia-admin-key}
+  search-api-key: ${ALGOLIA_SEARCH_API_KEY:your-algolia-search-key}
+  
+  # Index names
+  indexes:
+    products: products
+    user-events: user_events
+    discount-templates: discount_templates
+    conversions: conversions
+
+# Gemini API Configuration
+gemini:
+  api-key: ${GEMINI_API_KEY:your-gemini-api-key}
+  model: gemini-pro
+  base-url: https://generativelanguage.googleapis.com/v1beta
+
+# Discount Configuration
+discount:
+  default-expiry-minutes: 30
+  min-profit-margin: 0.15
+
+# Logging
+logging:
+  level:
+    com.dev.challenge.mcp: DEBUG
+    org.springframework.web: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"

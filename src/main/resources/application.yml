@@ -3,14 +3,29 @@ server:
 
 spring:
   application:
-    name: smart-discount-generator
+    name: sdg-api-gateway
   jackson:
     serialization:
       write-dates-as-timestamps: false
     deserialization:
       fail-on-unknown-properties: false
 
-# Algolia Configuration
+# MCP Server connection configuration
+mcp:
+  server:
+    base-url: http://localhost:8081
+    timeout: 30000
+    name: algolia-discount-mcp
+    version: 1.0.0
+    description: Smart Discount Generator MCP Server for Algolia integration
+
+# Gemini configuration for tool calling
+gemini:
+  api-key: ${GEMINI_API_KEY:AIzaSyDQD0W7maSXEkvcOX0Hicp6FoqqyteTZZ4}
+  model: gemini-pro
+  base-url: https://generativelanguage.googleapis.com/v1beta
+
+# Legacy Algolia config (kept for backward compatibility)
 algolia:
   application-id: ${ALGOLIA_APPLICATION_ID:your_algolia_app_id}
   admin-api-key: ${ALGOLIA_ADMIN_API_KEY:f563ed99dff0f7ccb8c2b78e681376be}
@@ -19,19 +34,6 @@ algolia:
     products: sdg_products
     user-events: sdg_user_events
     discount-templates: sdg_discount_templates
-
-# Gemini AI Configuration
-gemini:
-  api-key: ${GEMINI_API_KEY:AIzaSyDQD0W7maSXEkvcOX0Hicp6FoqqyteTZZ4}
-  api-url: https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent
-  model: gemini-pro
-
-# MCP Server Configuration
-mcp:
-  server:
-    name: algolia-discount-mcp
-    version: 1.0.0
-    description: Smart Discount Generator MCP Server for Algolia integration
 
 # Discount Configuration
 discount:
