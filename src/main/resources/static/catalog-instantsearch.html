@@ -3,85 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Discount Generator - Product Catalog (InstantSearch)</title>
+    <title>Smart Discount Generator - InstantSearch Catalog</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/instantsearch.css@8/themes/algolia-min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="catalog-instantsearch.css">
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-brand">
-                <i class="fas fa-percentage"></i>
-                <span>Smart Discount Generator</span>
-            </div>
-            <div class="nav-links">
-                <a href="index.html"><i class="fas fa-home"></i> Home</a>
-                <a href="catalog-instantsearch.html" class="active"><i class="fas fa-th-large"></i> Catalog</a>
-                <a href="cart.html"><i class="fas fa-shopping-cart"></i> Cart</a>
-                <a href="dashboard.html"><i class="fas fa-chart-line"></i> Dashboard</a>
-                <a href="admin.html"><i class="fas fa-cog"></i> Admin</a>
-            </div>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <h1 class="header-title">
+                <i class="fas fa-search"></i>
+                <a href="/">Smart Discount Generator</a>
+            </h1>
+            <p class="header-subtitle">
+                AI-Powered Product Discovery using
+                <a href="https://www.algolia.com/doc/guides/building-search-ui/what-is-instantsearch/js/" target="_blank">
+                    Algolia InstantSearch.js
+                </a>
+            </p>
+            
+            <!-- Navigation Links -->
+            <nav class="header-nav">
+                <a href="index.html" class="nav-link">
+                    <i class="fas fa-home"></i> Home Demo
+                </a>
+                <a href="catalog.html" class="nav-link">
+                    <i class="fas fa-th-large"></i> Custom Catalog
+                </a>
+                <a href="catalog-instantsearch.html" class="nav-link active">
+                    <i class="fas fa-search"></i> InstantSearch
+                </a>
+                <a href="cart.html" class="nav-link">
+                    <i class="fas fa-shopping-cart"></i> Cart
+                </a>
+                <a href="dashboard.html" class="nav-link">
+                    <i class="fas fa-chart-line"></i> Dashboard
+                </a>
+                <a href="admin.html" class="nav-link">
+                    <i class="fas fa-cog"></i> Admin
+                </a>
+            </nav>
         </div>
-    </nav>
+    </header>
 
-    <!-- Main Content -->
-    <div class="main-container">
-        <!-- Search Header -->
-        <div class="search-header">
-            <h1>Product Catalog</h1>
-            <p>Discover amazing products with AI-powered smart discounts</p>
-        </div>
+    <!-- Main Container -->
+    <div class="container">
+        <div class="search-panel">
+            <!-- Sidebar Filters -->
+            <div class="search-panel__filters">
+                <div class="filter-group">
+                    <h3>Categories</h3>
+                    <div id="category-list"></div>
+                </div>
+                
+                <div class="filter-group">
+                    <h3>Price Range</h3>
+                    <div id="price-range"></div>
+                </div>
+                
+                <div class="filter-group">
+                    <h3>Rating</h3>
+                    <div id="rating-list"></div>
+                </div>
+                
+                <div class="filter-group">
+                    <div id="clear-refinements"></div>
+                </div>
+            </div>
 
-        <!-- InstantSearch Container -->
-        <div id="instantsearch">
-            <!-- Search Box -->
-            <div class="search-container">
+            <!-- Main Search Results -->
+            <div class="search-panel__results">
+                <!-- Search Box -->
                 <div id="searchbox"></div>
-            </div>
-
-            <!-- Search Results Layout -->
-            <div class="search-results-layout">
-                <!-- Sidebar Filters -->
-                <div class="search-sidebar">
-                    <div class="filter-section">
-                        <h3>Categories</h3>
-                        <div id="category-list"></div>
-                    </div>
-                    
-                    <div class="filter-section">
-                        <h3>Price Range</h3>
-                        <div id="price-range"></div>
-                    </div>
-                    
-                    <div class="filter-section">
-                        <h3>Rating</h3>
-                        <div id="rating-list"></div>
-                    </div>
-                    
-                    <div class="filter-section">
-                        <h3>Clear Filters</h3>
-                        <div id="clear-refinements"></div>
-                    </div>
+                
+                <!-- Search Controls -->
+                <div class="search-controls">
+                    <div id="stats"></div>
+                    <div id="sort-by"></div>
                 </div>
-
-                <!-- Main Results Area -->
-                <div class="search-main">
-                    <!-- Search Stats and Sort -->
-                    <div class="search-controls">
-                        <div id="stats"></div>
-                        <div id="sort-by"></div>
-                    </div>
-
-                    <!-- Product Grid -->
-                    <div id="hits"></div>
-
-                    <!-- Pagination -->
-                    <div id="pagination"></div>
-                </div>
+                
+                <!-- Product Results -->
+                <div id="hits"></div>
+                
+                <!-- Pagination -->
+                <div id="pagination"></div>
             </div>
         </div>
+    </div>
 
         <!-- AI Discount Banner -->
         <div id="discount-banner" class="discount-banner" style="display: none;">
