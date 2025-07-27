@@ -16,8 +16,7 @@ class InstantSearchCatalog {
 
     async init() {
         try {
-            // Initialize Algolia search client
-            // Note: In production, you'd get these from your backend config
+            // Initialize Algolia search client with hardcoded configuration
             this.searchClient = algoliasearch('D5NLZGUAN7', 'f563ed99dff0f7ccb8c2b78e681376be');
             
             // Initialize InstantSearch
@@ -85,7 +84,7 @@ class InstantSearchCatalog {
                                 
                                 <div class="product-rating">
                                     <div class="stars">
-                                        ${this.renderStars(hit.rating || 4.5)}
+                                        ${this.renderStars(hit.average_rating || 4.5)}
                                     </div>
                                     <span class="rating-text">(${hit.number_of_reviews || 100} reviews)</span>
                                 </div>
@@ -144,7 +143,7 @@ class InstantSearchCatalog {
         this.search.addWidgets([
             instantsearch.widgets.ratingMenu({
                 container: '#rating-list',
-                attribute: 'rating',
+                attribute: 'average_rating',
                 max: 5,
                 cssClasses: {
                     starIcon: 'fas fa-star',
@@ -181,11 +180,7 @@ class InstantSearchCatalog {
             instantsearch.widgets.sortBy({
                 container: '#sort-by',
                 items: [
-                    { label: 'Relevance', value: 'sdg_products' },
-                    { label: 'Price: Low to High', value: 'sdg_products_price_asc' },
-                    { label: 'Price: High to Low', value: 'sdg_products_price_desc' },
-                    { label: 'Rating: High to Low', value: 'sdg_products_rating_desc' },
-                    { label: 'Name: A to Z', value: 'sdg_products_name_asc' }
+                    { label: 'Relevance', value: 'sdg_products' }
                 ]
             })
         ]);

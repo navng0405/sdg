@@ -142,17 +142,17 @@ class CatalogManager {
             
             // Convert Algolia products to frontend format
             let products = data.products.map(product => ({
-                id: product.objectId,
+                id: product.objectID,
                 name: product.name,
                 description: product.description,
                 price: parseFloat(product.price),
                 originalPrice: product.price * 1.25, // Simulate original price
-                image: product.imageUrl || `https://via.placeholder.com/300x200/4A90E2/FFFFFF?text=${encodeURIComponent(product.name)}`,
-                rating: product.rating || 4.5,
-                reviews: product.numberOfReviews || 100,
+                image: product.image_url || `https://via.placeholder.com/300x200/4A90E2/FFFFFF?text=${encodeURIComponent(product.name)}`,
+                rating: product.average_rating || 4.5,
+                reviews: product.number_of_reviews || 100,
                 category: product.category?.toLowerCase() || 'general',
                 discount: Math.floor((1 - (product.price / (product.price * 1.25))) * 100),
-                profitMargin: product.profitMargin || 0.3
+                profitMargin: product.profit_margin || 0.3
             }));
             
             // Apply client-side filters

@@ -134,18 +134,18 @@ class CartManager {
                 const data = await response.json();
                 console.log('Loaded products from API:', data);
                 
-                // Convert products array to object with objectId as key
+                // Convert products array to object with objectID as key
                 data.products.forEach(product => {
-                    this.products[product.objectId] = {
-                        id: product.objectId,
+                    this.products[product.objectID] = {
+                        id: product.objectID,
                         name: product.name,
                         description: product.description,
                         price: parseFloat(product.price),
-                        image: product.imageUrl || `https://via.placeholder.com/300x200/4A90E2/FFFFFF?text=${encodeURIComponent(product.name)}`,
+                        image: product.image_url || `https://via.placeholder.com/300x200/4A90E2/FFFFFF?text=${encodeURIComponent(product.name)}`,
                         category: product.category,
-                        rating: product.rating || 4.5,
-                        reviews: product.numberOfReviews || 100,
-                        profitMargin: product.profitMargin || 0.3
+                        rating: product.average_rating || 4.5,
+                        reviews: product.number_of_reviews || 100,
+                        profitMargin: product.profit_margin || 0.3
                     };
                 });
                 
@@ -178,15 +178,15 @@ class CartManager {
                 // Add batch products to cache
                 Object.entries(data.products).forEach(([productId, product]) => {
                     this.products[productId] = {
-                        id: product.objectId,
+                        id: product.objectID,
                         name: product.name,
                         description: product.description,
                         price: parseFloat(product.price),
-                        image: product.imageUrl || `https://via.placeholder.com/300x200/4A90E2/FFFFFF?text=${encodeURIComponent(product.name)}`,
+                        image: product.image_url || `https://via.placeholder.com/300x200/4A90E2/FFFFFF?text=${encodeURIComponent(product.name)}`,
                         category: product.category,
-                        rating: product.rating || 4.5,
-                        reviews: product.numberOfReviews || 100,
-                        profitMargin: product.profitMargin || 0.3
+                        rating: product.average_rating || 4.5,
+                        reviews: product.number_of_reviews || 100,
+                        profitMargin: product.profit_margin || 0.3
                     };
                 });
             }

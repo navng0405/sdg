@@ -378,7 +378,7 @@ body {
 /* Product Hits Grid */
 .ais-Hits-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 1.5rem;
     list-style: none;
     margin: 0;
@@ -394,6 +394,9 @@ body {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     cursor: pointer;
     width: auto;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 .ais-Hits-item:hover {
@@ -402,6 +405,142 @@ body {
     border-color: #667eea;
 }
 
+/* Product Card Layout */
+.product-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.product-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    background: #f8f9fa;
+    display: block;
+}
+
+.product-info {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.product-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #333;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 2.8rem;
+}
+
+.product-description {
+    font-size: 0.9rem;
+    color: #666;
+    line-height: 1.4;
+    margin-bottom: 1rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    flex-grow: 1;
+}
+
+.product-price {
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.current-price {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #667eea;
+}
+
+.original-price {
+    font-size: 1rem;
+    color: #999;
+    text-decoration: line-through;
+}
+
+.discount-badge {
+    background: #28a745;
+    color: white;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.product-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.stars {
+    color: #ffc107;
+    font-size: 0.9rem;
+    display: flex;
+    gap: 0.1rem;
+}
+
+.rating-text {
+    color: #666;
+    font-size: 0.85rem;
+}
+
+.product-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: auto;
+}
+
+.product-actions .btn {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    font-size: 0.9rem;
+}
+
+.btn-primary {
+    background: #667eea;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #5a6fd8;
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+}
+
+/* Legacy hit styles for compatibility */
 .hit-image {
     width: 100%;
     height: 200px;
@@ -459,6 +598,23 @@ body {
     font-size: 0.8rem;
     font-weight: 500;
     margin-top: 0.5rem;
+}
+
+/* Empty Results Styling */
+.empty-results {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: #666;
+}
+
+.empty-results h3 {
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.empty-results p {
+    font-size: 0.9rem;
+    color: #999;
 }
 
 /* Pagination */
@@ -748,6 +904,27 @@ body {
         font-size: 1rem;
         padding: 0.875rem 2.5rem 0.875rem 0.875rem;
     }
+    
+    /* Fix product card alignment on mobile */
+    .product-actions {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .product-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .product-price {
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .product-rating {
+        justify-content: space-between;
+        align-items: center;
+    }
 }
 
 @media (max-width: 480px) {
@@ -772,14 +949,33 @@ body {
         padding: 0.75rem;
     }
     
-    .hit-content {
+    .product-info {
         padding: 1rem;
+    }
+    
+    .product-name {
+        font-size: 1rem;
+        min-height: 2.4rem;
+    }
+    
+    .product-description {
+        font-size: 0.85rem;
+        -webkit-line-clamp: 3;
+    }
+    
+    .current-price {
+        font-size: 1.1rem;
     }
     
     .ais-Pagination-link {
         min-width: 35px;
         height: 35px;
         font-size: 0.9rem;
+    }
+    
+    .product-actions .btn {
+        padding: 0.625rem 0.75rem;
+        font-size: 0.85rem;
     }
 }
 

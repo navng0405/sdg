@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import jakarta.validation.constraints.NotBlank;
+import java.time.Instant;
 import java.util.Map;
 
 @Data
@@ -22,5 +23,6 @@ public class UserBehaviorRequest {
     
     private String productId;
     private String query;
+    private Instant timestamp;
     private Map<String, Object> details;
 }

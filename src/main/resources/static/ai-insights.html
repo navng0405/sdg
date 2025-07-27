@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Insights Dashboard - Algolia MCP Showcase</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .ai-insights-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        
+        .insights-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 2rem;
+        }
+        
+        .insights-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .insights-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .insight-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .insight-card h3 {
+            color: #333;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .insight-card .icon {
+            font-size: 1.5rem;
+            color: #667eea;
+        }
+        
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .metric-value {
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .ai-chat-container {
+            grid-column: 1 / -1;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .chat-messages {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            background: white;
+        }
+        
+        .chat-message {
+            margin: 0.5rem 0;
+            padding: 0.75rem;
+            border-radius: 8px;
+        }
+        
+        .chat-message.user {
+            background: #667eea;
+            color: white;
+            text-align: right;
+        }
+        
+        .chat-message.ai {
+            background: #f8f9fa;
+            color: #333;
+        }
+        
+        .chat-input-container {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .chat-input {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        .chat-send-btn {
+            padding: 0.75rem 1.5rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        .chat-send-btn:hover {
+            background: #5a6fd8;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .recommendation-item {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 0.5rem 0;
+        }
+        
+        .performance-chart {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            text-align: center;
+            border: 2px solid #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="ai-insights-container">
+        <div class="insights-header">
+            <h1><i class="fas fa-brain"></i> AI Insights Dashboard</h1>
+            <p>Powered by Algolia MCP Server & Advanced AI Analytics</p>
+        </div>
+        
+        <div class="insights-grid">
+            <!-- Search Analytics Card -->
+            <div class="insight-card">
+                <h3><i class="fas fa-search icon"></i> Search Analytics</h3>
+                <div id="search-analytics">
+                    <div class="loading"></div>
+                </div>
+            </div>
+            
+            <!-- User Behavior Insights -->
+            <div class="insight-card">
+                <h3><i class="fas fa-users icon"></i> User Behavior Insights</h3>
+                <div id="behavior-insights">
+                    <div class="loading"></div>
+                </div>
+            </div>
+            
+            <!-- Product Performance -->
+            <div class="insight-card">
+                <h3><i class="fas fa-chart-line icon"></i> Product Performance</h3>
+                <div id="product-performance">
+                    <div class="loading"></div>
+                </div>
+            </div>
+            
+            <!-- AI Recommendations -->
+            <div class="insight-card">
+                <h3><i class="fas fa-magic icon"></i> AI Recommendations</h3>
+                <div id="ai-recommendations">
+                    <div class="loading"></div>
+                </div>
+            </div>
+            
+            <!-- AI Chat Assistant -->
+            <div class="ai-chat-container">
+                <h3><i class="fas fa-comments icon"></i> AI Shopping Assistant</h3>
+                <p>Ask me anything about products, trends, or get personalized recommendations!</p>
+                
+                <div class="chat-messages" id="chat-messages">
+                    <div class="chat-message ai">
+                        👋 Hello! I'm your AI shopping assistant powered by Algolia's intelligent search. 
+                        Ask me about products, get recommendations, or inquire about shopping trends!
+                    </div>
+                </div>
+                
+                <div class="chat-input-container">
+                    <input type="text" id="chat-input" class="chat-input" 
+                           placeholder="Ask about products, get recommendations..." />
+                    <button id="chat-send" class="chat-send-btn">
+                        <i class="fas fa-paper-plane"></i> Send
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="ai-insights.js"></script>
+</body>
+</html>

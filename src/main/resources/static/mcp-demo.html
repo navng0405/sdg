@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCP-Powered Smart Discount Generator</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* MCP-Enhanced Styles */
+        .mcp-powered {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+        
+        .mcp-badge {
+            background: #4CAF50;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        
+        .ai-analysis-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 16px 0;
+            box-shadow: 0 4px 15px rgba(240, 147, 251, 0.3);
+        }
+        
+        .confidence-score {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        
+        .confidence-bar {
+            flex: 1;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .confidence-fill {
+            height: 100%;
+            background: white;
+            transition: width 0.5s ease;
+        }
+        
+        .mcp-insights {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 16px;
+            margin: 16px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .ai-recommendations {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 12px 0;
+        }
+        
+        .recommendation-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .recommendation-item:last-child {
+            border-bottom: none;
+        }
+        
+        .mcp-chat-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 350px;
+            height: 500px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+            display: none;
+            flex-direction: column;
+            z-index: 1000;
+        }
+        
+        .mcp-chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: between;
+        }
+        
+        .mcp-chat-messages {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+        }
+        
+        .mcp-chat-input {
+            padding: 16px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 8px;
+        }
+        
+        .mcp-fab {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            z-index: 999;
+        }
+        
+        .processing-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #667eea;
+            font-style: italic;
+        }
+        
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="mcp-powered">
+                <i class="fas fa-robot"></i>
+                MCP-Powered by Algolia + Claude AI
+            </div>
+            <h1>🤖 Intelligent Discount Generator</h1>
+            <p class="subtitle">AI-Enhanced Profit Protection with Algolia MCP Server</p>
+        </header>
+
+        <div class="main-content">
+            <!-- MCP Status Panel -->
+            <div class="status-panel">
+                <h3><i class="fas fa-brain"></i> AI System Status</h3>
+                <div class="status-grid">
+                    <div class="status-item">
+                        <span class="status-label">MCP Server</span>
+                        <span class="status-value" id="mcp-status">
+                            <span class="mcp-badge">ACTIVE</span>
+                        </span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">AI Analysis</span>
+                        <span class="status-value" id="ai-status">
+                            <span class="mcp-badge">READY</span>
+                        </span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Confidence</span>
+                        <span class="status-value" id="confidence-status">94%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Selection -->
+            <div class="product-section">
+                <h3><i class="fas fa-box"></i> Product Selection</h3>
+                <div class="product-card" id="current-product">
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1620953749696-38989c40eadb?w=300" alt="Product" id="product-img">
+                    </div>
+                    <div class="product-info">
+                        <h4 id="product-name">Waterproof Hiking Backpack</h4>
+                        <p class="product-price" id="product-price">$89.99</p>
+                        <p class="product-description" id="product-description">
+                            Durable and waterproof hiking backpack with multiple compartments
+                        </p>
+                        <div class="product-meta">
+                            <span class="badge" id="product-category">Sports</span>
+                            <span class="badge profit-margin" id="profit-margin">Margin: 35%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MCP-Enhanced Discount Generation -->
+            <div class="discount-section">
+                <h3><i class="fas fa-magic"></i> AI-Powered Discount Analysis</h3>
+                
+                <div class="input-group">
+                    <label for="user-id">User ID:</label>
+                    <input type="text" id="user-id" value="user-001" placeholder="Enter user ID">
+                </div>
+                
+                <div class="input-group">
+                    <label for="requested-discount">Requested Discount (%):</label>
+                    <input type="number" id="requested-discount" value="15" min="1" max="50" step="0.5">
+                </div>
+                
+                <div class="input-group">
+                    <label for="user-intent">User Intent:</label>
+                    <select id="user-intent">
+                        <option value="purchase_consideration">Purchase Consideration</option>
+                        <option value="price_comparison">Price Comparison</option>
+                        <option value="cart_abandonment">Cart Abandonment</option>
+                        <option value="loyalty_reward">Loyalty Reward</option>
+                    </select>
+                </div>
+                
+                <button class="cta-button" id="generate-intelligent-discount">
+                    <i class="fas fa-brain"></i>
+                    Generate AI-Optimized Discount
+                </button>
+            </div>
+
+            <!-- AI Analysis Results -->
+            <div id="ai-analysis-container" style="display: none;">
+                <div class="ai-analysis-card">
+                    <h4><i class="fas fa-robot"></i> AI Analysis Results</h4>
+                    <p id="ai-reasoning">Analyzing market conditions and user behavior...</p>
+                    
+                    <div class="confidence-score">
+                        <span>Confidence Score:</span>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" id="confidence-fill" style="width: 0%"></div>
+                        </div>
+                        <span id="confidence-percentage">0%</span>
+                    </div>
+                    
+                    <div class="mcp-insights">
+                        <h5><i class="fas fa-lightbulb"></i> Market Insights</h5>
+                        <div id="market-insights"></div>
+                    </div>
+                    
+                    <div class="ai-recommendations">
+                        <h5><i class="fas fa-suggestions"></i> AI Recommendations</h5>
+                        <div id="ai-recommendations"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Discount Banner -->
+            <div id="discount-banner" class="discount-banner" style="display: none;">
+                <div class="discount-content">
+                    <div class="discount-header">
+                        <h3 id="discount-headline">Special Offer!</h3>
+                        <span class="mcp-badge">MCP-ENHANCED</span>
+                    </div>
+                    <p id="discount-message">Your personalized discount is ready!</p>
+                    <div class="discount-details">
+                        <span class="discount-amount" id="discount-amount">15% OFF</span>
+                        <span class="discount-code">Code: <span id="discount-code">SMART15</span></span>
+                    </div>
+                    <div class="countdown-timer">
+                        <i class="fas fa-clock"></i>
+                        <span id="countdown">30:00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MCP Analytics Dashboard -->
+            <div class="analytics-section">
+                <h3><i class="fas fa-chart-line"></i> MCP Intelligence Dashboard</h3>
+                <div class="analytics-grid">
+                    <div class="analytics-card">
+                        <h4>AI Analyses</h4>
+                        <div class="metric-value" id="total-analyses">156</div>
+                        <div class="metric-label">Total MCP Analyses</div>
+                    </div>
+                    <div class="analytics-card">
+                        <h4>Optimizations</h4>
+                        <div class="metric-value" id="optimizations">43</div>
+                        <div class="metric-label">AI-Optimized Discounts</div>
+                    </div>
+                    <div class="analytics-card">
+                        <h4>Protected Revenue</h4>
+                        <div class="metric-value" id="protected-revenue">$12.8K</div>
+                        <div class="metric-label">Profit Protected</div>
+                    </div>
+                    <div class="analytics-card">
+                        <h4>Avg Confidence</h4>
+                        <div class="metric-value" id="avg-confidence">84.7%</div>
+                        <div class="metric-label">AI Confidence Score</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MCP Chat Assistant -->
+    <button class="mcp-fab" id="mcp-chat-fab">
+        <i class="fas fa-robot"></i>
+    </button>
+
+    <div class="mcp-chat-container" id="mcp-chat-container">
+        <div class="mcp-chat-header">
+            <div>
+                <i class="fas fa-robot"></i>
+                <strong>MCP AI Assistant</strong>
+                <span style="font-size: 12px; opacity: 0.8;">Powered by Algolia + Claude</span>
+            </div>
+            <button onclick="toggleMcpChat()" style="background: none; border: none; color: white; font-size: 16px;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="mcp-chat-messages" id="mcp-chat-messages">
+            <div class="chat-message assistant">
+                <div class="mcp-badge">AI</div>
+                <p>Hello! I'm your MCP-powered shopping assistant. I can help you find optimized discounts, analyze products, and provide personalized recommendations using Algolia's intelligent search and Claude AI. How can I help you today?</p>
+            </div>
+        </div>
+        <div class="mcp-chat-input">
+            <input type="text" id="chat-input" placeholder="Ask me anything..." style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            <button onclick="sendChatMessage()" style="padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 4px;">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+
+    <script src="mcp-enhanced-app.js"></script>
+</body>
+</html>
