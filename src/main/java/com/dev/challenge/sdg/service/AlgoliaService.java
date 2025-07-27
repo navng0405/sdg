@@ -616,8 +616,9 @@ public class AlgoliaService {
             
             SearchMethodParams params = new SearchMethodParams().addRequests(searchForHits);
             SearchResponses<Product> response = searchClient.search(params, Product.class);
-            
-            if (response.getResults() != null && !response.getResults().isEmpty()) {
+
+            response.getResults();
+            if (!response.getResults().isEmpty()) {
                 var result = response.getResults().get(0);
                 List<Product> hits = extractHitsFromResult(result);
                 log.info("Verification: Found {} products in index", hits.size());

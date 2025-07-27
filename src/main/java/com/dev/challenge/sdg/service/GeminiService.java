@@ -33,9 +33,6 @@ public class GeminiService {
     @Value("${gemini.base-url}")
     private String baseUrl;
     
-    @Value("${gemini.endpoint}")
-    private String endpoint;
-    
     @Value("${discount.max-discount-percentage}")
     private Integer maxDiscountPercentage;
     
@@ -126,11 +123,7 @@ public class GeminiService {
         );
         
         return webClient.post()
-<<<<<<< HEAD
-                .uri(baseUrl + endpoint + "?key=" + apiKey)
-=======
-                .uri("/v1beta/models/gemini-pro:generateContent?key=" + apiKey)
->>>>>>> cea188ee6129597d5a2cde86103f8adf42e810fb
+                .uri(baseUrl + "?key=" + apiKey)
                 .header("Content-Type", "application/json")
                 .bodyValue(requestBody)
                 .retrieve()

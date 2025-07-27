@@ -13,9 +13,7 @@ spring:
 # Gemini configuration for tool calling
 gemini:
   api-key: ${GEMINI_API_KEY:AIzaSyDQD0W7maSXEkvcOX0Hicp6FoqqyteTZZ4}
-  model: gemini-pro
-  base-url: https://generativelanguage.googleapis.com/v1beta
-  endpoint: /models/gemini-pro:generateContent
+  base-url: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent
 
 # Legacy Algolia config (kept for backward compatibility)
 algolia:
