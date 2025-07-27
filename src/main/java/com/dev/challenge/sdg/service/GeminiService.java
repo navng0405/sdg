@@ -23,8 +23,7 @@ import java.util.concurrent.CompletableFuture;
 @Service
 @RequiredArgsConstructor
 public class GeminiService {
-    
-    private static final Logger log = LoggerFactory.getLogger(GeminiService.class);
+
     private final WebClient.Builder webClientBuilder;
     private final ObjectMapper objectMapper;
     
@@ -127,7 +126,11 @@ public class GeminiService {
         );
         
         return webClient.post()
+<<<<<<< HEAD
                 .uri(baseUrl + endpoint + "?key=" + apiKey)
+=======
+                .uri("/v1beta/models/gemini-pro:generateContent?key=" + apiKey)
+>>>>>>> cea188ee6129597d5a2cde86103f8adf42e810fb
                 .header("Content-Type", "application/json")
                 .bodyValue(requestBody)
                 .retrieve()
