@@ -18,7 +18,7 @@ class InstantSearchCatalog {
         try {
             // Initialize Algolia search client
             // Note: In production, you'd get these from your backend config
-            this.searchClient = algoliasearch('YOUR_APP_ID', 'YOUR_SEARCH_API_KEY');
+            this.searchClient = algoliasearch('D5NLZGUAN7', 'f563ed99dff0f7ccb8c2b78e681376be');
             
             // Initialize InstantSearch
             this.search = instantsearch({
