@@ -8,9 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Map;
-import java.time.OffsetTime;
 
 @Data
 @Builder
@@ -29,8 +28,8 @@ public class UserEvent {
     private String eventType;
 
     @JsonProperty("timestamp")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ssX", timezone = "UTC")
-    private LocalDateTime timestamp;
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private Instant timestamp;
     
     @JsonProperty("productId")
     private String productId;

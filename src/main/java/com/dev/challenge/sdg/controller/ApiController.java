@@ -13,7 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -40,7 +40,7 @@ public class ApiController {
                     .productId(request.getProductId())
                     .query(request.getQuery())
                     .details(request.getDetails())
-                    .timestamp(LocalDateTime.now())
+                    .timestamp(Instant.now())
                     .build();
             
             algoliaService.storeUserEvent(userEvent).get();

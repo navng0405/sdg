@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.http.MediaType;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -67,7 +67,7 @@ public class AlgoliaService {
             
             // Set timestamp if not provided
             if (userEvent.getTimestamp() == null) {
-                userEvent.setTimestamp(LocalDateTime.now());
+                userEvent.setTimestamp(Instant.now());
             }
             
             // Save the user event using the correct API method
@@ -141,7 +141,7 @@ public class AlgoliaService {
                         builder.timestamp(timestamp);
                     } catch (Exception e) {
                         log.debug("Failed to parse timestamp, using current time: {}", e.getMessage());
-                        builder.timestamp(LocalDateTime.now());
+                        builder.timestamp(Instant.now());
                     }
                 }
                 

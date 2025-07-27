@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -263,7 +263,7 @@ public class McpToolService {
                     .eventType("discount_conversion")
                     .productId(null) // Not applicable for conversion events
                     .query(null)
-                    .timestamp(LocalDateTime.now())
+                    .timestamp(Instant.now())
                     .details(Map.of(
                             "discountCode", discountCode,
                             "conversionStatus", conversionStatus,
