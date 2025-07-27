@@ -38,6 +38,9 @@ public class GeminiOrchestratorService {
     @Value("${gemini.base-url}")
     private String baseUrl;
     
+    @Value("${gemini.endpoint}")
+    private String endpoint;
+    
     private WebClient webClient;
     
     /**
@@ -183,7 +186,7 @@ public class GeminiOrchestratorService {
         
         return webClient
                 .post()
-                .uri("/models/{model}:generateContent?key={apiKey}", model, geminiApiKey)
+                .uri(endpoint + "?key={apiKey}", geminiApiKey)
                 .header("Content-Type", "application/json")
                 .bodyValue(requestBody)
                 .retrieve()
