@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Catalog - Smart Discount Generator</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="catalog.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation Header -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Smart Discount Generator</span>
+            </div>
+            <div class="nav-links">
+                <a href="catalog.html" class="nav-link active">
+                    <i class="fas fa-th-large"></i> Catalog
+                </a>
+                <a href="cart.html" class="nav-link">
+                    <i class="fas fa-shopping-cart"></i> Cart
+                    <span id="cart-count" class="cart-count">0</span>
+                </a>
+                <a href="dashboard.html" class="nav-link">
+                    <i class="fas fa-user"></i> Dashboard
+                </a>
+                <a href="admin.html" class="nav-link">
+                    <i class="fas fa-chart-line"></i> Analytics
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Discount Notification Banner -->
+    <div id="discount-banner" class="discount-banner hidden">
+        <div class="discount-content">
+            <div class="discount-icon">🎉</div>
+            <div class="discount-text">
+                <h3 id="discount-headline">Special Offer!</h3>
+                <p id="discount-message">AI detected your interest - here's a personalized discount!</p>
+                <div class="discount-details">
+                    <span id="discount-amount" class="discount-amount">15% OFF</span>
+                    <span id="discount-code" class="discount-code">Code: SMART15</span>
+                </div>
+            </div>
+            <div class="discount-timer">
+                <i class="fas fa-clock"></i>
+                <span id="countdown-timer">29:59</span>
+            </div>
+            <button id="claim-discount-btn" class="claim-btn">
+                <i class="fas fa-gift"></i> Claim Now
+            </button>
+        </div>
+        <button id="close-discount-btn" class="close-btn">&times;</button>
+    </div>
+
+    <!-- Main Content -->
+    <div class="catalog-container">
+        <!-- Search and Filter Section -->
+        <div class="search-section">
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" id="search-input" placeholder="Search products with AI-powered recommendations...">
+                <button id="search-btn" class="search-button">Search</button>
+            </div>
+            
+            <div class="filter-section">
+                <div class="filter-group">
+                    <label>Category:</label>
+                    <select id="category-filter">
+                        <option value="">All Categories</option>
+                        <option value="electronics">Electronics</option>
+                        <option value="clothing">Clothing</option>
+                        <option value="home">Home & Garden</option>
+                        <option value="sports">Sports & Outdoors</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label>Price Range:</label>
+                    <select id="price-filter">
+                        <option value="">All Prices</option>
+                        <option value="0-50">$0 - $50</option>
+                        <option value="50-100">$50 - $100</option>
+                        <option value="100-200">$100 - $200</option>
+                        <option value="200+">$200+</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label>Sort By:</label>
+                    <select id="sort-filter">
+                        <option value="relevance">Relevance</option>
+                        <option value="price-low">Price: Low to High</option>
+                        <option value="price-high">Price: High to Low</option>
+                        <option value="rating">Customer Rating</option>
+                        <option value="newest">Newest First</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Recommendations Section -->
+        <div class="recommendations-section">
+            <h2><i class="fas fa-brain"></i> AI Recommendations for You</h2>
+            <div id="recommendations-grid" class="recommendations-grid">
+                <!-- AI recommendations will be populated here -->
+            </div>
+        </div>
+
+        <!-- Product Grid Section -->
+        <div class="products-section">
+            <div class="section-header">
+                <h2><i class="fas fa-th-large"></i> All Products</h2>
+                <div class="view-toggle">
+                    <button id="grid-view" class="view-btn active">
+                        <i class="fas fa-th-large"></i>
+                    </button>
+                    <button id="list-view" class="view-btn">
+                        <i class="fas fa-list"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="loading-spinner hidden" id="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+                <span>Loading products...</span>
+            </div>
+            
+            <div id="products-grid" class="products-grid">
+                <!-- Products will be populated here -->
+            </div>
+            
+            <div class="pagination">
+                <button id="prev-page" class="page-btn" disabled>
+                    <i class="fas fa-chevron-left"></i> Previous
+                </button>
+                <div id="page-info" class="page-info">
+                    Page 1 of 5
+                </div>
+                <button id="next-page" class="page-btn">
+                    Next <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Behavior Tracking Panel (for demo) -->
+    <div class="behavior-panel">
+        <button id="toggle-behavior-panel" class="toggle-btn">
+            <i class="fas fa-cogs"></i> Behavior Tracking
+        </button>
+        <div id="behavior-content" class="behavior-content hidden">
+            <h3>Real-time Behavior Analytics</h3>
+            <div class="behavior-stats">
+                <div class="stat-item">
+                    <span class="stat-label">Products Viewed:</span>
+                    <span id="products-viewed" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Search Queries:</span>
+                    <span id="search-queries" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Hesitation Score:</span>
+                    <span id="hesitation-score" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">AI Confidence:</span>
+                    <span id="ai-confidence" class="stat-value">85%</span>
+                </div>
+            </div>
+            <div class="user-info">
+                <label for="user-id">User ID:</label>
+                <input type="text" id="user-id" value="user-001" placeholder="Enter user ID">
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="catalog.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

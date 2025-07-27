@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Analytics - Smart Discount Generator</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="admin.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Navigation Header -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Smart Discount Generator</span>
+            </div>
+            <div class="nav-links">
+                <a href="catalog.html" class="nav-link">
+                    <i class="fas fa-th-large"></i> Catalog
+                </a>
+                <a href="cart.html" class="nav-link">
+                    <i class="fas fa-shopping-cart"></i> Cart
+                    <span id="cart-count" class="cart-count">0</span>
+                </a>
+                <a href="dashboard.html" class="nav-link">
+                    <i class="fas fa-user"></i> Dashboard
+                </a>
+                <a href="admin.html" class="nav-link active">
+                    <i class="fas fa-chart-line"></i> Analytics
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Admin Dashboard Container -->
+    <div class="admin-container">
+        <!-- Dashboard Header -->
+        <div class="admin-header">
+            <div class="header-content">
+                <h1><i class="fas fa-chart-line"></i> Admin Analytics Dashboard</h1>
+                <p>Real-time insights powered by Algolia MCP Server & AI</p>
+            </div>
+            <div class="header-controls">
+                <select id="time-range" class="time-range-select">
+                    <option value="today">Today</option>
+                    <option value="week" selected>This Week</option>
+                    <option value="month">This Month</option>
+                    <option value="quarter">This Quarter</option>
+                </select>
+                <button id="refresh-data" class="refresh-btn">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+                <button id="export-report" class="export-btn">
+                    <i class="fas fa-download"></i> Export
+                </button>
+            </div>
+        </div>
+
+        <!-- Key Metrics Row -->
+        <div class="metrics-row">
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="metric-content">
+                    <div class="metric-value" id="total-users">2,847</div>
+                    <div class="metric-label">Active Users</div>
+                    <div class="metric-change positive">
+                        <i class="fas fa-arrow-up"></i> +12.5%
+                    </div>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-percentage"></i>
+                </div>
+                <div class="metric-content">
+                    <div class="metric-value" id="conversion-rate">18.3%</div>
+                    <div class="metric-label">Conversion Rate</div>
+                    <div class="metric-change positive">
+                        <i class="fas fa-arrow-up"></i> +3.2%
+                    </div>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="metric-content">
+                    <div class="metric-value" id="total-revenue">$45,892</div>
+                    <div class="metric-label">Total Revenue</div>
+                    <div class="metric-change positive">
+                        <i class="fas fa-arrow-up"></i> +8.7%
+                    </div>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <div class="metric-content">
+                    <div class="metric-value" id="ai-accuracy">94.2%</div>
+                    <div class="metric-label">AI Accuracy</div>
+                    <div class="metric-change positive">
+                        <i class="fas fa-arrow-up"></i> +1.8%
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="admin-content">
+            <!-- Left Column -->
+            <div class="admin-left">
+                <!-- Real-time User Behavior -->
+                <div class="analytics-panel">
+                    <div class="panel-header">
+                        <h2><i class="fas fa-eye"></i> Real-time User Behavior</h2>
+                        <div class="live-indicator">
+                            <span class="live-dot"></span>
+                            <span>LIVE</span>
+                        </div>
+                    </div>
+                    <div class="behavior-grid">
+                        <div class="behavior-stat">
+                            <div class="stat-number" id="active-sessions">127</div>
+                            <div class="stat-label">Active Sessions</div>
+                        </div>
+                        <div class="behavior-stat">
+                            <div class="stat-number" id="page-views">1,834</div>
+                            <div class="stat-label">Page Views</div>
+                        </div>
+                        <div class="behavior-stat">
+                            <div class="stat-number" id="cart-additions">89</div>
+                            <div class="stat-label">Cart Additions</div>
+                        </div>
+                        <div class="behavior-stat">
+                            <div class="stat-number" id="discount-triggers">23</div>
+                            <div class="stat-label">Discount Triggers</div>
+                        </div>
+                    </div>
+                    <div class="behavior-chart-container">
+                        <canvas id="realTimeChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Discount Performance -->
+                <div class="analytics-panel">
+                    <div class="panel-header">
+                        <h2><i class="fas fa-gift"></i> Discount Performance</h2>
+                        <select id="discount-period" class="period-select">
+                            <option value="today">Today</option>
+                            <option value="week" selected>This Week</option>
+                            <option value="month">This Month</option>
+                        </select>
+                    </div>
+                    <div class="discount-metrics">
+                        <div class="discount-metric">
+                            <div class="metric-title">Total Discounts Generated</div>
+                            <div class="metric-number" id="total-discounts">1,247</div>
+                        </div>
+                        <div class="discount-metric">
+                            <div class="metric-title">Average Discount Rate</div>
+                            <div class="metric-number" id="avg-discount-rate">16.8%</div>
+                        </div>
+                        <div class="discount-metric">
+                            <div class="metric-title">Redemption Rate</div>
+                            <div class="metric-number" id="redemption-rate">73.2%</div>
+                        </div>
+                    </div>
+                    <div class="discount-chart-container">
+                        <canvas id="discountChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- AI Insights -->
+                <div class="analytics-panel">
+                    <div class="panel-header">
+                        <h2><i class="fas fa-robot"></i> AI Insights & Recommendations</h2>
+                        <div class="ai-status">
+                            <span class="status-dot active"></span>
+                            <span>AI Active</span>
+                        </div>
+                    </div>
+                    <div id="ai-insights" class="ai-insights">
+                        <!-- AI insights will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="admin-right">
+                <!-- User Segmentation -->
+                <div class="analytics-panel">
+                    <div class="panel-header">
+                        <h2><i class="fas fa-users-cog"></i> User Segmentation</h2>
+                        <button id="segment-users" class="segment-btn">
+                            <i class="fas fa-filter"></i> Segment
+                        </button>
+                    </div>
+                    <div class="segmentation-chart-container">
+                        <canvas id="segmentationChart"></canvas>
+                    </div>
+                    <div class="segment-details">
+                        <div class="segment-item">
+                            <div class="segment-color" style="background: #667eea;"></div>
+                            <div class="segment-info">
+                                <div class="segment-name">High-Value Customers</div>
+                                <div class="segment-stats">847 users • $89 avg order</div>
+                            </div>
+                        </div>
+                        <div class="segment-item">
+                            <div class="segment-color" style="background: #764ba2;"></div>
+                            <div class="segment-info">
+                                <div class="segment-name">Discount Seekers</div>
+                                <div class="segment-stats">1,234 users • $45 avg order</div>
+                            </div>
+                        </div>
+                        <div class="segment-item">
+                            <div class="segment-color" style="background: #5cb85c;"></div>
+                            <div class="segment-info">
+                                <div class="segment-name">New Customers</div>
+                                <div class="segment-stats">566 users • $32 avg order</div>
+                            </div>
+                        </div>
+                        <div class="segment-item">
+                            <div class="segment-color" style="background: #f0ad4e;"></div>
+                            <div class="segment-info">
+                                <div class="segment-name">At-Risk Users</div>
+                                <div class="segment-stats">200 users • $28 avg order</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MCP Server Status -->
+                <div class="analytics-panel">
+                    <div class="panel-header">
+                        <h2><i class="fas fa-server"></i> MCP Server Status</h2>
+                        <div class="server-status online">
+                            <span class="status-dot"></span>
+                            <span>Online</span>
+                        </div>
+                    </div>
+                    <div class="server-metrics">
+                        <div class="server-metric">
+                            <div class="metric-icon">
+                                <i class="fas fa-tachometer-alt"></i>
+                            </div>
+                            <div class="metric-info">
+                                <div class="metric-value" id="response-time">23ms</div>
+                                <div class="metric-label">Avg Response Time</div>
+                            </div>
+                        </div>
+                        <div class="server-metric">
+                            <div class="metric-icon">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <div class="metric-info">
+                                <div class="metric-value" id="api-calls">12,847</div>
+                                <div class="metric-label">API Calls Today</div>
+                            </div>
+                        </div>
+                        <div class="server-metric">
+                            <div class="metric-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="metric-info">
+                                <div class="metric-value" id="success-rate">99.7%</div>
+                                <div class="metric-label">Success Rate</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="algolia-status">
+                        <h3>Algolia Integration</h3>
+                        <div class="algolia-metrics">
+                            <div class="algolia-metric">
+                                <span>Search Queries:</span>
+                                <span id="search-queries">8,934</span>
+                            </div>
+                            <div class="algolia-metric">
+                                <span>Index Size:</span>
+                                <span id="index-size">2.3MB</span>
+                            </div>
+                            <div class="algolia-metric">
+                                <span>Last Sync:</span>
+                                <span id="last-sync">2 min ago</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- A/B Testing -->
+                <div class="analytics-panel">
+                    <div class="panel-header">
+                        <h2><i class="fas fa-flask"></i> A/B Testing</h2>
+                        <button id="create-test" class="create-test-btn">
+                            <i class="fas fa-plus"></i> New Test
+                        </button>
+                    </div>
+                    <div id="ab-tests" class="ab-tests">
+                        <!-- A/B tests will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="analytics-panel">
+                    <div class="panel-header">
+                        <h2><i class="fas fa-history"></i> Recent Activity</h2>
+                        <button id="view-all-activity" class="view-all-btn">
+                            View All
+                        </button>
+                    </div>
+                    <div id="recent-activity" class="recent-activity">
+                        <!-- Recent activity will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MCP Tools Panel -->
+    <div class="mcp-tools-panel">
+        <button id="toggle-mcp-tools" class="mcp-toggle">
+            <i class="fas fa-tools"></i>
+            <span>MCP Tools</span>
+        </button>
+        <div id="mcp-tools-content" class="mcp-tools-content hidden">
+            <h3>Available MCP Tools</h3>
+            <div class="mcp-tools-grid">
+                <div class="mcp-tool" data-tool="getUserHesitationData">
+                    <div class="tool-icon">
+                        <i class="fas fa-user-clock"></i>
+                    </div>
+                    <div class="tool-info">
+                        <div class="tool-name">getUserHesitationData</div>
+                        <div class="tool-description">Analyze user behavior patterns</div>
+                    </div>
+                    <button class="tool-execute" onclick="adminManager.executeMCPTool('getUserHesitationData')">
+                        Execute
+                    </button>
+                </div>
+                
+                <div class="mcp-tool" data-tool="getProductProfitMargin">
+                    <div class="tool-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <div class="tool-info">
+                        <div class="tool-name">getProductProfitMargin</div>
+                        <div class="tool-description">Get product financial data</div>
+                    </div>
+                    <button class="tool-execute" onclick="adminManager.executeMCPTool('getProductProfitMargin')">
+                        Execute
+                    </button>
+                </div>
+                
+                <div class="mcp-tool" data-tool="generateSmartDiscount">
+                    <div class="tool-icon">
+                        <i class="fas fa-magic"></i>
+                    </div>
+                    <div class="tool-info">
+                        <div class="tool-name">generateSmartDiscount</div>
+                        <div class="tool-description">AI-powered discount generation</div>
+                    </div>
+                    <button class="tool-execute" onclick="adminManager.executeMCPTool('generateSmartDiscount')">
+                        Execute
+                    </button>
+                </div>
+            </div>
+            <div id="mcp-tool-results" class="mcp-tool-results">
+                <!-- Tool execution results will appear here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="admin.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

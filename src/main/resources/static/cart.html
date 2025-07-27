@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart - Smart Discount Generator</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="cart.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation Header -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Smart Discount Generator</span>
+            </div>
+            <div class="nav-links">
+                <a href="catalog.html" class="nav-link">
+                    <i class="fas fa-th-large"></i> Catalog
+                </a>
+                <a href="cart.html" class="nav-link active">
+                    <i class="fas fa-shopping-cart"></i> Cart
+                    <span id="cart-count" class="cart-count">0</span>
+                </a>
+                <a href="dashboard.html" class="nav-link">
+                    <i class="fas fa-user"></i> Dashboard
+                </a>
+                <a href="admin.html" class="nav-link">
+                    <i class="fas fa-chart-line"></i> Analytics
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Cart Abandonment Recovery Banner -->
+    <div id="abandonment-banner" class="abandonment-banner hidden">
+        <div class="abandonment-content">
+            <div class="abandonment-icon">⚡</div>
+            <div class="abandonment-text">
+                <h3>Wait! Don't leave your cart behind!</h3>
+                <p>Complete your purchase now and get an exclusive discount</p>
+                <div class="recovery-offer">
+                    <span id="recovery-discount" class="recovery-amount">10% OFF</span>
+                    <span class="recovery-code">Code: COMEBACK10</span>
+                </div>
+            </div>
+            <button id="apply-recovery-btn" class="recovery-btn">
+                <i class="fas fa-gift"></i> Apply & Continue
+            </button>
+        </div>
+        <button id="close-abandonment-btn" class="close-btn">&times;</button>
+    </div>
+
+    <!-- Main Cart Container -->
+    <div class="cart-container">
+        <!-- Cart Header -->
+        <div class="cart-header">
+            <h1><i class="fas fa-shopping-cart"></i> Your Shopping Cart</h1>
+            <div class="cart-progress">
+                <div class="progress-step active">
+                    <div class="step-number">1</div>
+                    <span>Cart</span>
+                </div>
+                <div class="progress-line"></div>
+                <div class="progress-step">
+                    <div class="step-number">2</div>
+                    <span>Checkout</span>
+                </div>
+                <div class="progress-line"></div>
+                <div class="progress-step">
+                    <div class="step-number">3</div>
+                    <span>Payment</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cart Content -->
+        <div class="cart-content">
+            <!-- Cart Items Section -->
+            <div class="cart-items-section">
+                <div class="section-header">
+                    <h2>Cart Items</h2>
+                    <button id="clear-cart-btn" class="clear-cart-btn">
+                        <i class="fas fa-trash"></i> Clear Cart
+                    </button>
+                </div>
+                
+                <div id="cart-items-container" class="cart-items-container">
+                    <!-- Cart items will be populated here -->
+                </div>
+                
+                <div id="empty-cart" class="empty-cart hidden">
+                    <div class="empty-cart-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <h3>Your cart is empty</h3>
+                    <p>Discover amazing products in our catalog</p>
+                    <a href="catalog.html" class="continue-shopping-btn">
+                        <i class="fas fa-arrow-left"></i> Continue Shopping
+                    </a>
+                </div>
+            </div>
+
+            <!-- Cart Summary Section -->
+            <div class="cart-summary-section">
+                <div class="cart-summary">
+                    <h3><i class="fas fa-receipt"></i> Order Summary</h3>
+                    
+                    <div class="summary-row">
+                        <span>Subtotal:</span>
+                        <span id="subtotal">$0.00</span>
+                    </div>
+                    
+                    <div class="summary-row">
+                        <span>Shipping:</span>
+                        <span id="shipping">$9.99</span>
+                    </div>
+                    
+                    <div class="summary-row">
+                        <span>Tax:</span>
+                        <span id="tax">$0.00</span>
+                    </div>
+                    
+                    <div id="discount-row" class="summary-row discount-row hidden">
+                        <span>Discount (<span id="discount-code-display"></span>):</span>
+                        <span id="discount-amount" class="discount-amount">-$0.00</span>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="summary-row total-row">
+                        <span>Total:</span>
+                        <span id="total">$9.99</span>
+                    </div>
+                    
+                    <!-- Discount Code Input -->
+                    <div class="discount-input-section">
+                        <h4>Have a discount code?</h4>
+                        <div class="discount-input-group">
+                            <input type="text" id="discount-code-input" placeholder="Enter discount code">
+                            <button id="apply-discount-btn" class="apply-discount-btn">Apply</button>
+                        </div>
+                        <div id="discount-message" class="discount-message"></div>
+                    </div>
+                    
+                    <!-- Checkout Button -->
+                    <button id="checkout-btn" class="checkout-btn" disabled>
+                        <i class="fas fa-lock"></i> Proceed to Checkout
+                    </button>
+                    
+                    <!-- Continue Shopping -->
+                    <a href="catalog.html" class="continue-shopping-link">
+                        <i class="fas fa-arrow-left"></i> Continue Shopping
+                    </a>
+                </div>
+                
+                <!-- Smart Recommendations -->
+                <div class="smart-recommendations">
+                    <h3><i class="fas fa-brain"></i> You might also like</h3>
+                    <div id="recommendations-container" class="recommendations-container">
+                        <!-- AI recommendations will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Abandonment Detection Modal -->
+    <div id="abandonment-modal" class="abandonment-modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🛍️ Don't miss out!</h3>
+                <button id="close-modal-btn" class="close-modal-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Our AI detected you're about to leave. Here's a special offer just for you!</p>
+                <div class="special-offer">
+                    <div class="offer-badge">EXCLUSIVE</div>
+                    <div class="offer-details">
+                        <span class="offer-percentage">15% OFF</span>
+                        <span class="offer-code">Code: STAYWITHUS15</span>
+                    </div>
+                </div>
+                <div class="offer-timer">
+                    <i class="fas fa-clock"></i>
+                    <span>This offer expires in: <span id="modal-countdown">05:00</span></span>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button id="accept-offer-btn" class="accept-offer-btn">
+                    <i class="fas fa-gift"></i> Accept Offer & Continue
+                </button>
+                <button id="decline-offer-btn" class="decline-offer-btn">
+                    No thanks, continue leaving
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Behavior Tracking Panel -->
+    <div class="behavior-panel">
+        <button id="toggle-behavior-panel" class="toggle-btn">
+            <i class="fas fa-analytics"></i> Cart Analytics
+        </button>
+        <div id="behavior-content" class="behavior-content hidden">
+            <h3>Real-time Cart Analytics</h3>
+            <div class="behavior-stats">
+                <div class="stat-item">
+                    <span class="stat-label">Time in Cart:</span>
+                    <span id="time-in-cart" class="stat-value">0:00</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Items Added:</span>
+                    <span id="items-added" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Items Removed:</span>
+                    <span id="items-removed" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Abandonment Risk:</span>
+                    <span id="abandonment-risk" class="stat-value risk-low">Low</span>
+                </div>
+            </div>
+            <div class="user-info">
+                <label for="user-id">User ID:</label>
+                <input type="text" id="user-id" value="user-001" placeholder="Enter user ID">
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="cart.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

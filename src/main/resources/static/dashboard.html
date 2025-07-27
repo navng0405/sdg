@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard - Smart Discount Generator</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Navigation Header -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Smart Discount Generator</span>
+            </div>
+            <div class="nav-links">
+                <a href="catalog.html" class="nav-link">
+                    <i class="fas fa-th-large"></i> Catalog
+                </a>
+                <a href="cart.html" class="nav-link">
+                    <i class="fas fa-shopping-cart"></i> Cart
+                    <span id="cart-count" class="cart-count">0</span>
+                </a>
+                <a href="dashboard.html" class="nav-link active">
+                    <i class="fas fa-user"></i> Dashboard
+                </a>
+                <a href="admin.html" class="nav-link">
+                    <i class="fas fa-chart-line"></i> Analytics
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard Container -->
+    <div class="dashboard-container">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+            <div class="user-welcome">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="welcome-text">
+                    <h1>Welcome back, <span id="user-name">John Doe</span>!</h1>
+                    <p>Here's your personalized shopping insights powered by AI</p>
+                </div>
+            </div>
+            <div class="user-stats">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-shopping-bag"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="total-orders">12</span>
+                        <span class="stat-label">Total Orders</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="total-saved">$248</span>
+                        <span class="stat-label">Total Saved</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-percentage"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="avg-discount">18%</span>
+                        <span class="stat-label">Avg Discount</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard Content -->
+        <div class="dashboard-content">
+            <!-- Left Column -->
+            <div class="dashboard-left">
+                <!-- AI Insights Panel -->
+                <div class="insights-panel">
+                    <div class="panel-header">
+                        <h2><i class="fas fa-brain"></i> AI Insights</h2>
+                        <div class="ai-confidence">
+                            <span>AI Confidence: <strong id="ai-confidence">92%</strong></span>
+                        </div>
+                    </div>
+                    <div class="insights-content">
+                        <div class="insight-item">
+                            <div class="insight-icon">🎯</div>
+                            <div class="insight-text">
+                                <h4>Shopping Pattern Analysis</h4>
+                                <p>You tend to shop for electronics on weekends and respond well to 15-20% discounts. Your optimal discount timing is after 3+ product views.</p>
+                            </div>
+                        </div>
+                        <div class="insight-item">
+                            <div class="insight-icon">💡</div>
+                            <div class="insight-text">
+                                <h4>Personalized Recommendations</h4>
+                                <p>Based on your behavior, you're 78% likely to purchase tech accessories when viewing electronics. Consider bundled offers.</p>
+                            </div>
+                        </div>
+                        <div class="insight-item">
+                            <div class="insight-icon">📈</div>
+                            <div class="insight-text">
+                                <h4>Conversion Optimization</h4>
+                                <p>Your cart abandonment rate decreased by 45% after implementing AI-powered discount timing. Keep up the great engagement!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Personalized Offers -->
+                <div class="offers-panel">
+                    <div class="panel-header">
+                        <h2><i class="fas fa-gift"></i> Personalized Offers</h2>
+                        <button id="refresh-offers-btn" class="refresh-btn">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                    <div id="offers-container" class="offers-container">
+                        <!-- Offers will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Behavior Timeline */
+                <div class="timeline-panel">
+                    <div class="panel-header">
+                        <h2><i class="fas fa-clock"></i> Recent Activity</h2>
+                        <select id="timeline-filter" class="timeline-filter">
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                        </select>
+                    </div>
+                    <div id="timeline-container" class="timeline-container">
+                        <!-- Timeline will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="dashboard-right">
+                <!-- Shopping Behavior Chart -->
+                <div class="chart-panel">
+                    <div class="panel-header">
+                        <h2><i class="fas fa-chart-area"></i> Shopping Behavior</h2>
+                        <div class="chart-controls">
+                            <button class="chart-btn active" data-chart="behavior">Behavior</button>
+                            <button class="chart-btn" data-chart="spending">Spending</button>
+                            <button class="chart-btn" data-chart="discounts">Discounts</button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="behaviorChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Discount History -->
+                <div class="history-panel">
+                    <div class="panel-header">
+                        <h2><i class="fas fa-history"></i> Discount History</h2>
+                        <button id="export-history-btn" class="export-btn">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                    </div>
+                    <div class="history-container">
+                        <div class="history-filters">
+                            <input type="date" id="start-date" class="date-input">
+                            <input type="date" id="end-date" class="date-input">
+                            <button id="filter-history-btn" class="filter-btn">Filter</button>
+                        </div>
+                        <div id="history-list" class="history-list">
+                            <!-- History items will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preferences Panel -->
+                <div class="preferences-panel">
+                    <div class="panel-header">
+                        <h2><i class="fas fa-cog"></i> Preferences</h2>
+                        <button id="save-preferences-btn" class="save-btn">
+                            <i class="fas fa-save"></i> Save
+                        </button>
+                    </div>
+                    <div class="preferences-content">
+                        <div class="preference-group">
+                            <label>Notification Preferences</label>
+                            <div class="checkbox-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="email-notifications" checked>
+                                    <span class="checkmark"></span>
+                                    Email notifications
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="push-notifications" checked>
+                                    <span class="checkmark"></span>
+                                    Push notifications
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="sms-notifications">
+                                    <span class="checkmark"></span>
+                                    SMS notifications
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="preference-group">
+                            <label>Discount Preferences</label>
+                            <div class="range-group">
+                                <label>Minimum discount threshold: <span id="min-discount-value">10%</span></label>
+                                <input type="range" id="min-discount" min="5" max="50" value="10" class="range-slider">
+                            </div>
+                            <div class="range-group">
+                                <label>Notification frequency: <span id="frequency-value">Medium</span></label>
+                                <input type="range" id="notification-frequency" min="1" max="3" value="2" class="range-slider">
+                            </div>
+                        </div>
+                        
+                        <div class="preference-group">
+                            <label>Categories of Interest</label>
+                            <div class="tag-group">
+                                <span class="interest-tag active" data-category="electronics">Electronics</span>
+                                <span class="interest-tag active" data-category="clothing">Clothing</span>
+                                <span class="interest-tag" data-category="home">Home & Garden</span>
+                                <span class="interest-tag active" data-category="sports">Sports</span>
+                                <span class="interest-tag" data-category="books">Books</span>
+                                <span class="interest-tag" data-category="beauty">Beauty</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Chat Assistant -->
+    <div class="ai-assistant">
+        <button id="toggle-assistant" class="assistant-toggle">
+            <i class="fas fa-robot"></i>
+            <span class="assistant-badge">AI</span>
+        </button>
+        <div id="assistant-panel" class="assistant-panel hidden">
+            <div class="assistant-header">
+                <h3><i class="fas fa-robot"></i> AI Shopping Assistant</h3>
+                <button id="close-assistant" class="close-assistant">×</button>
+            </div>
+            <div id="chat-messages" class="chat-messages">
+                <div class="message ai-message">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-content">
+                        <p>Hi! I'm your AI shopping assistant. I can help you understand your shopping patterns, find the best deals, and optimize your discount strategy. What would you like to know?</p>
+                    </div>
+                </div>
+            </div>
+            <div class="chat-input-container">
+                <input type="text" id="chat-input" placeholder="Ask me about your shopping patterns...">
+                <button id="send-message" class="send-btn">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="dashboard.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

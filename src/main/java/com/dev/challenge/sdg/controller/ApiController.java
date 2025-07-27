@@ -3,6 +3,7 @@ package com.dev.challenge.sdg.controller;
 import com.dev.challenge.sdg.dto.DiscountResponse;
 import com.dev.challenge.sdg.dto.UserBehaviorRequest;
 import com.dev.challenge.sdg.model.Discount;
+import com.dev.challenge.sdg.model.Product;
 import com.dev.challenge.sdg.model.UserEvent;
 import com.dev.challenge.sdg.service.AlgoliaService;
 import com.dev.challenge.sdg.service.DiscountService;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -172,6 +174,87 @@ public class ApiController {
             log.error("Error retrieving active discounts", e);
             return ResponseEntity.internalServerError().body(Map.of(
                     "error", "Failed to retrieve active discounts"
+            ));
+        }
+    }
+    
+    @GetMapping("/products")
+    public ResponseEntity<Map<String, Object>> getProducts(
+            @RequestParam(defaultValue = "") String query,
+            @RequestParam(defaultValue = "20") int limit) {
+        
+        log.info("Getting products with query: '{}', limit: {}", query, limit);
+        
+        try {
+            List<Product> products;
+            if (query.isEmpty()) {
+                // Get all products by searching with empty query
+                products = algoliaService.searchProducts("", limit).get();
+            } else {
+                // Search products with specific query
+                products = algoliaService.searchProducts(query, limit).get();
+            }
+            
+            return ResponseEntity.ok(Map.of(
+                    "products", products,
+                    "count", products.size(),
+                    "query", query
+            ));
+        } catch (Exception e) {
+            log.error("Error retrieving products", e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                    "error", "Failed to retrieve products"
+            ));
+        }
+    }
+    
+    @GetMapping("/products/{productId}")
+    public ResponseEntity<Map<String, Object>> getProduct(@PathVariable String productId) {
+        log.info("Getting product: {}", productId);
+        
+        try {
+            Product product = algoliaService.getProduct(productId).get();
+            
+            if (product != null) {
+                return ResponseEntity.ok(Map.of(
+                        "product", product,
+                        "found", true
+                ));
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            log.error("Error retrieving product: {}", productId, e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                    "error", "Failed to retrieve product"
+            ));
+        }
+    }
+    
+    @PostMapping("/products/batch")
+    public ResponseEntity<Map<String, Object>> getProductsBatch(@RequestBody Map<String, List<String>> request) {
+        List<String> productIds = request.get("productIds");
+        log.info("Getting batch of products: {}", productIds);
+        
+        try {
+            Map<String, Product> products = new java.util.HashMap<>();
+            
+            for (String productId : productIds) {
+                Product product = algoliaService.getProduct(productId).get();
+                if (product != null) {
+                    products.put(productId, product);
+                }
+            }
+            
+            return ResponseEntity.ok(Map.of(
+                    "products", products,
+                    "requested", productIds.size(),
+                    "found", products.size()
+            ));
+        } catch (Exception e) {
+            log.error("Error retrieving batch products", e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                    "error", "Failed to retrieve batch products"
             ));
         }
     }
