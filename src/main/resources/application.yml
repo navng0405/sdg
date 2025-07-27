@@ -31,6 +31,10 @@ mcp:
     name: algolia-smart-discount-generator
     version: 1.0.0
     description: Smart Discount Generator with Algolia integration and AI-powered discount generation
+    url: ${MCP_SERVER_URL:http://localhost:3000}
+    enabled: ${MCP_ENABLED:true}
+    timeout-seconds: 10
+    retry-attempts: 2
 
 # Discount Configuration
 discount:

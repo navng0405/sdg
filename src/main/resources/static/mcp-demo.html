@@ -198,6 +198,20 @@
             <!-- Product Selection -->
             <div class="product-section">
                 <h3><i class="fas fa-box"></i> Product Selection</h3>
+                
+                <!-- Product Selector -->
+                <div class="input-group">
+                    <label for="product-selector">Choose Product:</label>
+                    <select id="product-selector" onchange="updateSelectedProduct()">
+                        <option value="PROD018">Waterproof Hiking Backpack - $89.99</option>
+                        <option value="PROD017">High-Performance Running Shoes - $129.99</option>
+                        <option value="PROD016">Professional DSLR Camera Kit - $899.99</option>
+                        <option value="PROD015">Wireless Bluetooth Headphones - $199.99</option>
+                        <option value="PROD014">Smart Fitness Watch - $249.99</option>
+                        <option value="PROD013">Premium Coffee Maker - $159.99</option>
+                    </select>
+                </div>
+                
                 <div class="product-card" id="current-product">
                     <div class="product-image">
                         <img src="https://images.unsplash.com/photo-1620953749696-38989c40eadb?w=300" alt="Product" id="product-img">
@@ -211,6 +225,7 @@
                         <div class="product-meta">
                             <span class="badge" id="product-category">Sports</span>
                             <span class="badge profit-margin" id="profit-margin">Margin: 35%</span>
+                            <span class="badge" id="product-rating">4.6★</span>
                         </div>
                     </div>
                 </div>

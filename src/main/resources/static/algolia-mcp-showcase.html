@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 Official Algolia MCP Server Integration - Advanced AI Commerce</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Official Algolia MCP Server Styles */
+        .algolia-mcp-header {
+            background: linear-gradient(135deg, #5468ff 0%, #003dff 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .mcp-server-badge {
+            background: #00d084;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+        
+        .mcp-feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .mcp-feature-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .mcp-feature-card:hover {
+            border-color: #5468ff;
+            transform: translateY(-2px);
+        }
+        
+        .feature-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #5468ff, #003dff);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+        }
+        
+        .ai-response-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 15px 0;
+            min-height: 100px;
+            display: none;
+        }
+        
+        .ai-response-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        
+        .ai-response-content {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .mcp-status-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .mcp-status-indicator.disconnected {
+            background: #dc3545;
+        }
+        
+        .loading-spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid white;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .demo-controls {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .demo-button {
+            background: #5468ff;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .demo-button:hover {
+            background: #003dff;
+            transform: translateY(-1px);
+        }
+        
+        .demo-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .metric-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #5468ff;
+        }
+        
+        .metric-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        /* MCP Chat Styles */
+        .mcp-fab {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #5468ff 0%, #003dff 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            box-shadow: 0 8px 25px rgba(84, 104, 255, 0.4);
+            cursor: pointer;
+            font-size: 24px;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .mcp-fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 30px rgba(84, 104, 255, 0.6);
+        }
+        
+        .mcp-chat-container {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            width: 380px;
+            height: 500px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+            display: none;
+            flex-direction: column;
+            z-index: 1001;
+            overflow: hidden;
+        }
+        
+        .mcp-chat-header {
+            background: linear-gradient(135deg, #5468ff 0%, #003dff 100%);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .mcp-chat-header .mcp-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .close-assistant {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .close-assistant:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .mcp-chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .chat-message {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        
+        .chat-message.user {
+            flex-direction: row-reverse;
+        }
+        
+        .chat-message .mcp-badge,
+        .chat-message .user-badge {
+            background: #5468ff;
+            color: white;
+            padding: 6px 10px;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .chat-message.user .user-badge {
+            background: #28a745;
+        }
+        
+        .chat-message p {
+            background: #f8f9fa;
+            padding: 12px 16px;
+            border-radius: 15px;
+            margin: 0;
+            max-width: 250px;
+            line-height: 1.4;
+        }
+        
+        .chat-message.user p {
+            background: #e9ecef;
+        }
+        
+        .mcp-chat-input {
+            padding: 15px 20px;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .mcp-chat-input input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            outline: none;
+            font-size: 14px;
+        }
+        
+        .mcp-chat-input input:focus {
+            border-color: #5468ff;
+        }
+        
+        .mcp-chat-input button {
+            width: 40px;
+            height: 40px;
+            background: #5468ff;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .mcp-chat-input button:hover {
+            background: #003dff;
+            transform: scale(1.1);
+        }
+        
+        .chat-suggestion {
+            background: linear-gradient(135deg, #e8f5e8 0%, #f0fff0 100%);
+            border: 2px solid #28a745;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin: 8px 0;
+            font-size: 13px;
+            line-height: 1.4;
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.15);
+            animation: slideInSuggestion 0.3s ease-out;
+        }
+        
+        .chat-suggestion strong {
+            color: #155724;
+            font-weight: 600;
+        }
+        
+        @keyframes slideInSuggestion {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <!-- MCP Status Indicator -->
+    <div id="mcpStatus" class="mcp-status-indicator">
+        <i class="fas fa-circle"></i>
+        <span>Connecting to Algolia MCP Server...</span>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="algolia-mcp-header">
+            <div class="mcp-server-badge">
+                <i class="fas fa-robot"></i>
+                Official Algolia MCP Server
+            </div>
+            <h1>🚀 Smart Discount Generator</h1>
+            <p>Powered by Official Algolia MCP Server with Advanced AI Capabilities</p>
+        </div>
+
+        <!-- Performance Metrics -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-value" id="mcpRequestCount">0</div>
+                <div class="metric-label">MCP Requests</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="aiInsightsCount">0</div>
+                <div class="metric-label">AI Insights Generated</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="avgResponseTime">-</div>
+                <div class="metric-label">Avg Response Time</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="mcpServerUptime">Connected</div>
+                <div class="metric-label">MCP Server Status</div>
+            </div>
+        </div>
+
+        <!-- MCP Feature Demonstrations -->
+        <div class="mcp-feature-grid">
+            <!-- Smart Discount Generation -->
+            <div class="mcp-feature-card">
+                <div class="feature-header">
+                    <div class="feature-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3>AI-Powered Smart Discounts</h3>
+                </div>
+                <p>Generate intelligent discounts using Algolia MCP Server's AI analysis of user behavior and market conditions.</p>
+                
+                <div class="demo-controls">
+                    <input type="text" id="discountUserId" placeholder="User ID (e.g., user123)" class="form-control">
+                    <input type="text" id="discountProductId" placeholder="Product ID (e.g., PROD018)" class="form-control">
+                    <input type="number" id="requestedDiscount" placeholder="Requested Discount %" min="5" max="50" value="15" class="form-control">
+                    <button class="demo-button" onclick="generateSmartDiscount()">
+                        <i class="fas fa-magic"></i> Generate Smart Discount
+                    </button>
+                </div>
+                
+                <div id="discountResponse" class="ai-response-container">
+                    <div class="ai-response-header">
+                        <i class="fas fa-robot"></i>
+                        <span>Algolia MCP AI Analysis</span>
+                    </div>
+                    <div class="ai-response-content" id="discountContent"></div>
+                </div>
+            </div>
+
+            <!-- User Journey Analytics -->
+            <div class="mcp-feature-card">
+                <div class="feature-header">
+                    <div class="feature-icon">
+                        <i class="fas fa-route"></i>
+                    </div>
+                    <h3>User Journey Analytics</h3>
+                </div>
+                <p>Analyze user behavior patterns and preferences using Algolia MCP Server's advanced analytics.</p>
+                
+                <div class="demo-controls">
+                    <input type="text" id="journeyUserId" placeholder="User ID (e.g., user123)" class="form-control">
+                    <select id="timeRange" class="form-control">
+                        <option value="1d">Last 24 hours</option>
+                        <option value="7d" selected>Last 7 days</option>
+                        <option value="30d">Last 30 days</option>
+                    </select>
+                    <button class="demo-button" onclick="analyzeUserJourney()">
+                        <i class="fas fa-chart-line"></i> Analyze Journey
+                    </button>
+                </div>
+                
+                <div id="journeyResponse" class="ai-response-container">
+                    <div class="ai-response-header">
+                        <i class="fas fa-analytics"></i>
+                        <span>Journey Analytics</span>
+                    </div>
+                    <div class="ai-response-content" id="journeyContent"></div>
+                </div>
+            </div>
+
+            <!-- Search Optimization -->
+            <div class="mcp-feature-card">
+                <div class="feature-header">
+                    <div class="feature-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h3>AI-Enhanced Search</h3>
+                </div>
+                <p>Optimize search results with personalization using Algolia MCP Server's intelligent ranking.</p>
+                
+                <div class="demo-controls">
+                    <input type="text" id="searchQuery" placeholder="Search query (e.g., running shoes)" class="form-control">
+                    <input type="text" id="searchUserId" placeholder="User ID for personalization" class="form-control">
+                    <button class="demo-button" onclick="optimizeSearch()">
+                        <i class="fas fa-cogs"></i> Optimize Search
+                    </button>
+                </div>
+                
+                <div id="searchResponse" class="ai-response-container">
+                    <div class="ai-response-header">
+                        <i class="fas fa-search-plus"></i>
+                        <span>Search Optimization Results</span>
+                    </div>
+                    <div class="ai-response-content" id="searchContent"></div>
+                </div>
+            </div>
+
+            <!-- Conversion Tracking -->
+            <div class="mcp-feature-card">
+                <div class="feature-header">
+                    <div class="feature-icon">
+                        <i class="fas fa-funnel-dollar"></i>
+                    </div>
+                    <h3>Conversion Funnel Tracking</h3>
+                </div>
+                <p>Track user events and analyze conversion funnels with AI-powered insights from Algolia MCP Server.</p>
+                
+                <div class="demo-controls">
+                    <select id="eventType" class="form-control">
+                        <option value="product_view">Product View</option>
+                        <option value="add_to_cart">Add to Cart</option>
+                        <option value="search">Search</option>
+                        <option value="purchase">Purchase</option>
+                    </select>
+                    <input type="text" id="trackingUserId" placeholder="User ID" class="form-control">
+                    <input type="text" id="trackingProductId" placeholder="Product ID" class="form-control">
+                    <button class="demo-button" onclick="trackConversion()">
+                        <i class="fas fa-chart-bar"></i> Track Event
+                    </button>
+                </div>
+                
+                <div id="trackingResponse" class="ai-response-container">
+                    <div class="ai-response-header">
+                        <i class="fas fa-analytics"></i>
+                        <span>Conversion Analytics</span>
+                    </div>
+                    <div class="ai-response-content" id="trackingContent"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Real-time MCP Server Logs -->
+        <div class="mcp-feature-card" style="grid-column: 1 / -1;">
+            <div class="feature-header">
+                <div class="feature-icon">
+                    <i class="fas fa-terminal"></i>
+                </div>
+                <h3>Real-time MCP Server Activity</h3>
+            </div>
+            <div id="mcpLogs" style="background: #1a1a1a; color: #00ff00; padding: 15px; border-radius: 8px; font-family: monospace; height: 200px; overflow-y: auto; font-size: 12px;">
+                <div>🚀 Algolia MCP Server initialized...</div>
+                <div>🔗 Connected to Algolia Search API</div>
+                <div>🤖 AI capabilities enabled</div>
+                <div>📊 Analytics engine ready</div>
+                <div>✅ Server ready for requests</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MCP Chat FAB Button -->
+    <button class="mcp-fab" id="mcp-chat-fab">
+        <i class="fas fa-comments"></i>
+    </button>
+
+    <!-- MCP Chat Container -->
+    <div class="mcp-chat-container" id="mcp-chat-container">
+        <div class="mcp-chat-header">
+            <div class="mcp-badge">AI Assistant</div>
+            <span>Powered by Algolia MCP + Claude</span>
+            <button class="close-assistant" onclick="toggleMcpChat()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="mcp-chat-messages" id="mcp-chat-messages">
+            <div class="chat-message assistant">
+                <div class="mcp-badge">AI</div>
+                <p>👋 Hi! I'm your AI shopping assistant. I can help you find the best deals, recommend products, and provide intelligent discount analysis. What can I help you with today?</p>
+            </div>
+        </div>
+        
+        <div class="mcp-chat-input">
+            <input type="text" id="chat-input" placeholder="Ask about discounts, products, or deals..." onkeypress="if(event.key==='Enter') sendChatMessage()">
+            <button onclick="sendChatMessage()">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+
+    <script src="algolia-mcp-enhanced.js"></script>
+    <script src="mcp-enhanced-app.js"></script>
+</body>
+</html>

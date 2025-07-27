@@ -1,0 +1,82 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------------< com.dev.challenge:sdg >------------------------
+[INFO] Building sdg 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.2.0:run (default-cli) > test-compile @ sdg >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ sdg ---
+[INFO] Copying 2 resources from src/main/resources to target/classes
+[INFO] Copying 22 resources from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ sdg ---
+[INFO] Changes detected - recompiling the module! :source
+[INFO] Compiling 23 source files with javac [debug release 17] to target/classes
+[INFO] /Users/n0g08qj/Naveen/Personal_Projects/devCha/sdg/src/main/java/com/dev/challenge/sdg/service/DiscountService.java: Some input files use unchecked or unsafe operations.
+[INFO] /Users/n0g08qj/Naveen/Personal_Projects/devCha/sdg/src/main/java/com/dev/challenge/sdg/service/DiscountService.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ sdg ---
+[INFO] skip non existing resourceDirectory /Users/n0g08qj/Naveen/Personal_Projects/devCha/sdg/src/test/resources
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ sdg ---
+[INFO] Changes detected - recompiling the module! :dependency
+[INFO] Compiling 1 source file with javac [debug release 17] to target/test-classes
+[INFO] 
+[INFO] <<< spring-boot:3.2.0:run (default-cli) < test-compile @ sdg <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.2.0:run (default-cli) @ sdg ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+[32m :: Spring Boot :: [39m              [2m (v3.2.0)[0;39m
+
+[2m2025-07-27T15:51:59.932-07:00[0;39m [32m INFO[0;39m [35m13554[0;39m [2m---[0;39m [2m[sdg] [  restartedMain][0;39m [2m[0;39m[36mcom.dev.challenge.sdg.SdgApplication    [0;39m [2m:[0;39m Starting SdgApplication using Java 23.0.2 with PID 13554 (/Users/n0g08qj/Naveen/Personal_Projects/devCha/sdg/target/classes started by n0g08qj in /Users/n0g08qj/Naveen/Personal_Projects/devCha/sdg)
+[2m2025-07-27T15:51:59.933-07:00[0;39m [32mDEBUG[0;39m [35m13554[0;39m [2m---[0;39m [2m[sdg] [  restartedMain][0;39m [2m[0;39m[36mcom.dev.challenge.sdg.SdgApplication    [0;39m [2m:[0;39m Running with Spring Boot v3.2.0, Spring v6.1.1
+[2m2025-07-27T15:51:59.934-07:00[0;39m [32m INFO[0;39m [35m13554[0;39m [2m---[0;39m [2m[sdg] [  restartedMain][0;39m [2m[0;39m[36mcom.dev.challenge.sdg.SdgApplication    [0;39m [2m:[0;39m No active profile set, falling back to 1 default profile: "default"
+[2m2025-07-27T15:51:59.959-07:00[0;39m [32m INFO[0;39m [35m13554[0;39m [2m---[0;39m [2m[sdg] [  restartedMain][0;39m [2m[0;39m[36m.e.DevToolsPropertyDefaultsPostProcessor[0;39m [2m:[0;39m Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+[2m2025-07-27T15:51:59.959-07:00[0;39m [32m INFO[0;39m [35m13554[0;39m [2m---[0;39m [2m[sdg] [  restartedMain][0;39m [2m[0;39m[36m.e.DevToolsPropertyDefaultsPostProcessor[0;39m [2m:[0;39m For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+[2m2025-07-27T15:52:00.455-07:00[0;39m [32m INFO[0;39m [35m13554[0;39m [2m---[0;39m [2m[sdg] [  restartedMain][0;39m [2m[0;39m[36mo.s.b.w.embedded.tomcat.TomcatWebServer [0;39m [2m:[0;39m Tomcat initialized with port 8080 (http)
+[2m2025-07-27T15:52:00.461-07:00[0;39m [32m INFO[0;39m [35m13554[0;39m [2m---[0;39m [2m[sdg] [  restartedMain][0;39m [2m[0;39m[36mo.apache.catalina.core.StandardService  [0;39m [2m:[0;39m Starting service [Tomcat]
+[2m2025-07-27T15:52:00.461-07:00[0;39m [32m INFO[0;39m [35m13554[0;39m [2m---[0;39m [2m[sdg] [  restartedMain][0;39m [2m[0;39m[36mo.apache.catalina.core.StandardEngine   [0;39m [2m:[0;39m Starting Servlet engine: [Apache Tomcat/10.1.16]
+[2m2025-07-27T15:52:00.481-07:00[0;39m [32m INFO[0;39m [35m13554[0;39m [2m---[0;39m [2m[sdg] [  restartedMain][0;39m [2m[0;39m[36mo.a.c.c.C.[Tomcat].[localhost].[/]      [0;39m [2m:[0;39m Initializing Spring embedded WebApplicationContext
+[2m2025-07-27T15:52:00.481-07:00[0;39m [32m INFO[0;39m [35m13554[0;39m [2m---[0;39m [2m[sdg] [  restartedMain][0;39m [2m[0;39m[36mw.s.c.ServletWebServerApplicationContext[0;39m [2m:[0;39m Root WebApplicationContext: initialization completed in 522 ms
+[2m2025-07-27T15:52:00.508-07:00[0;39m [32m INFO[0;39m [35m13554[0;39m [2m---[0;39m [2m[sdg] [  restartedMain][0;39m [2m[0;39m[36mc.d.challenge.sdg.config.AlgoliaConfig  [0;39m [2m:[0;39m Initializing Algolia Search Client with Application ID: D5NLZGUAN7
+[2m2025-07-27T15:52:00.662-07:00[0;39m [32m INFO[0;39m [35m13554[0;39m [2m---[0;39m [2m[sdg] [  restartedMain][0;39m [2m[0;39m[36mc.d.challenge.sdg.config.AlgoliaConfig  [0;39m [2m:[0;39m Initializing Algolia Analytics Client with Application ID: D5NLZGUAN7
+[2m2025-07-27T15:52:00.777-07:00[0;39m [32m INFO[0;39m [35m13554[0;39m [2m---[0;39m [2m[sdg] [  restartedMain][0;39m [2m[0;39m[36mc.d.challenge.sdg.config.AlgoliaConfig  [0;39m [2m:[0;39m Configured ObjectMapper with JavaTimeModule and disabled timestamp serialization
+[2m2025-07-27T15:52:00.789-07:00[0;39m [32m INFO[0;39m [35m13554[0;39m [2m---[0;39m [2m[sdg] [  restartedMain][0;39m [2m[0;39m[36mc.dev.challenge.sdg.service.McpClient   [0;39m [2m:[0;39m 🚀 Official Algolia MCP Client initialized - Server: null, Enabled: false
+[2m2025-07-27T15:52:00.797-07:00[0;39m [32m INFO[0;39m [35m13554[0;39m [2m---[0;39m [2m[sdg] [  restartedMain][0;39m [2m[0;39m[36mf.a.AutowiredAnnotationBeanPostProcessor[0;39m [2m:[0;39m Autowired annotation should only be used on methods with parameters: public void com.dev.challenge.sdg.service.McpProfitProtectionService.initializeMcpClient()
+[2m2025-07-27T15:52:00.799-07:00[0;39m [32m INFO[0;39m [35m13554[0;39m [2m---[0;39m [2m[sdg] [  restartedMain][0;39m [2m[0;39m[36mc.d.c.s.s.McpProfitProtectionService    [0;39m [2m:[0;39m 🤖 MCP Client initialized - Server: http://localhost:3000
+[2m2025-07-27T15:52:00.841-07:00[0;39m [32m INFO[0;39m [35m13554[0;39m [2m---[0;39m [2m[sdg] [  restartedMain][0;39m [2m[0;39m[36mo.s.b.a.w.s.WelcomePageHandlerMapping   [0;39m [2m:[0;39m Adding welcome page: class path resource [static/index.html]
+[2m2025-07-27T15:52:00.990-07:00[0;39m [33m WARN[0;39m [35m13554[0;39m [2m---[0;39m [2m[sdg] [  restartedMain][0;39m [2m[0;39m[36mo.s.b.d.a.OptionalLiveReloadServer      [0;39m [2m:[0;39m Unable to start LiveReload server
+[2m2025-07-27T15:52:01.005-07:00[0;39m [33m WARN[0;39m [35m13554[0;39m [2m---[0;39m [2m[sdg] [  restartedMain][0;39m [2m[0;39m[36mConfigServletWebServerApplicationContext[0;39m [2m:[0;39m Exception encountered during context initialization - cancelling refresh attempt: org.springframework.context.ApplicationContextException: Failed to start bean 'webServerStartStop'
+[2m2025-07-27T15:52:01.014-07:00[0;39m [32m INFO[0;39m [35m13554[0;39m [2m---[0;39m [2m[sdg] [  restartedMain][0;39m [2m[0;39m[36m.s.b.a.l.ConditionEvaluationReportLogger[0;39m [2m:[0;39m 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+[2m2025-07-27T15:52:01.023-07:00[0;39m [31mERROR[0;39m [35m13554[0;39m [2m---[0;39m [2m[sdg] [  restartedMain][0;39m [2m[0;39m[36mo.s.b.d.LoggingFailureAnalysisReporter  [0;39m [2m:[0;39m 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Web server failed to start. Port 8080 was already in use.
+
+Action:
+
+Identify and stop the process that's listening on port 8080 or configure this application to listen on another port.
+
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  4.940 s
+[INFO] Finished at: 2025-07-27T15:52:01-07:00
+[INFO] ------------------------------------------------------------------------

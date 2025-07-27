@@ -2,6 +2,8 @@ package com.dev.challenge.sdg.service;
 
 import com.dev.challenge.sdg.dto.McpResponse;
 import com.dev.challenge.sdg.model.UserEvent;
+import com.dev.challenge.sdg.model.Product;
+import com.dev.challenge.sdg.model.Discount;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

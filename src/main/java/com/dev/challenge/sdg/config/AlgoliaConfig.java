@@ -6,8 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,8 +13,6 @@ import org.springframework.context.annotation.Configuration;
 @Slf4j
 @Configuration
 public class AlgoliaConfig {
-    
-    private static final Logger log = LoggerFactory.getLogger(AlgoliaConfig.class);
     
     @Value("${algolia.application-id}")
     private String applicationId;

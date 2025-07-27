@@ -11,6 +11,7 @@ import org.springframework.http.MediaType;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
@@ -34,13 +35,29 @@ public class McpProfitProtectionService {
     @Value("${mcp.server.url:http://localhost:3000}")
     private String mcpServerUrl;
     
+    @Value("${mcp.server.enabled:false}")
+    private boolean mcpEnabled;
+    
+    @Value("${mcp.server.timeout-seconds:10}")
+    private int timeoutSeconds;
+    
+    @Value("${mcp.server.retry-attempts:2}")
+    private int retryAttempts;
+    
     private WebClient mcpClient;
     
     @Autowired
     public void initializeMcpClient() {
         this.mcpClient = webClientBuilder
                 .baseUrl(mcpServerUrl)
+                .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(1024 * 1024))
                 .build();
+        
+        if (mcpEnabled) {
+            log.info("🤖 MCP Client initialized - Server: {}", mcpServerUrl);
+        } else {
+            log.info("⚠️ MCP integration disabled - using fallback mode");
+        }
     }
     
     /**
@@ -54,6 +71,12 @@ public class McpProfitProtectionService {
             Map<String, Object> marketContext) {
         
         return CompletableFuture.supplyAsync(() -> {
+            // Check if MCP is enabled
+            if (!mcpEnabled) {
+                log.info("📊 MCP disabled - using enhanced fallback analysis for product: {}", productId);
+                return createEnhancedFallbackResult(productId, requestedDiscount, userId, marketContext);
+            }
+            
             try {
                 log.info("🤖 Starting MCP-enhanced profit analysis for product: {}", productId);
                 
@@ -66,6 +89,8 @@ public class McpProfitProtectionService {
                         .bodyValue(mcpRequest)
                         .retrieve()
                         .bodyToMono(Map.class)
+                        .timeout(Duration.ofSeconds(timeoutSeconds))
+                        .retryWhen(reactor.util.retry.Retry.fixedDelay(retryAttempts, Duration.ofSeconds(1)))
                         .block();
                 
                 // Step 2: Use MCP to get market intelligence
@@ -77,6 +102,8 @@ public class McpProfitProtectionService {
                         .bodyValue(marketRequest)
                         .retrieve()
                         .bodyToMono(Map.class)
+                        .timeout(Duration.ofSeconds(timeoutSeconds))
+                        .retryWhen(reactor.util.retry.Retry.fixedDelay(retryAttempts, Duration.ofSeconds(1)))
                         .block();
                 
                 // Step 3: Use MCP to analyze historical pricing data
@@ -88,6 +115,8 @@ public class McpProfitProtectionService {
                         .bodyValue(historicalRequest)
                         .retrieve()
                         .bodyToMono(Map.class)
+                        .timeout(Duration.ofSeconds(timeoutSeconds))
+                        .retryWhen(reactor.util.retry.Retry.fixedDelay(retryAttempts, Duration.ofSeconds(1)))
                         .block();
                 
                 // Step 4: AI-powered profit margin analysis using Claude through MCP
@@ -100,6 +129,8 @@ public class McpProfitProtectionService {
                         .bodyValue(aiAnalysisRequest)
                         .retrieve()
                         .bodyToMono(Map.class)
+                        .timeout(Duration.ofSeconds(timeoutSeconds))
+                        .retryWhen(reactor.util.retry.Retry.fixedDelay(retryAttempts, Duration.ofSeconds(1)))
                         .block();
                 
                 // Process MCP results into intelligent profit protection decision
@@ -107,8 +138,9 @@ public class McpProfitProtectionService {
                         productResponse, marketResponse, historicalResponse, aiResponse);
                 
             } catch (Exception e) {
-                log.error("❌ MCP profit analysis failed for product: {}", productId, e);
-                return createFallbackResult(productId, requestedDiscount, userId);
+                log.error("❌ MCP profit analysis failed for product: {} - Error: {}", productId, e.getMessage());
+                log.debug("MCP Error Details:", e);
+                return createEnhancedFallbackResult(productId, requestedDiscount, userId, marketContext);
             }
         });
     }
@@ -255,6 +287,25 @@ public class McpProfitProtectionService {
             String riskLevel = (String) aiResults.get("risk_level");
             String reasoning = (String) aiResults.get("reasoning");
             
+            // Extract market insights from AI analysis (preferred) or fallback to market data
+            Map<String, Object> marketInsights;
+            if (aiResults.containsKey("market_insights")) {
+                Object insights = aiResults.get("market_insights");
+                if (insights instanceof List) {
+                    // Convert list of insights to a structured map
+                    List<String> insightsList = (List<String>) insights;
+                    marketInsights = new HashMap<>();
+                    marketInsights.put("insights", insightsList);
+                    marketInsights.put("analysis_type", "ai_enhanced");
+                } else if (insights instanceof Map) {
+                    marketInsights = (Map<String, Object>) insights;
+                } else {
+                    marketInsights = extractMarketInsights(marketData);
+                }
+            } else {
+                marketInsights = extractMarketInsights(marketData);
+            }
+            
             // Determine if the requested discount should be approved
             boolean approved = requestedDiscount <= recommendedDiscount;
             double finalDiscount = approved ? requestedDiscount : recommendedDiscount;
@@ -273,7 +324,7 @@ public class McpProfitProtectionService {
                     .confidenceScore(confidenceScore)
                     .riskLevel(riskLevel)
                     .reasoning(reasoning)
-                    .marketInsights(extractMarketInsights(marketData))
+                    .marketInsights(marketInsights)
                     .historicalInsights(extractHistoricalInsights(historicalData))
                     .aiRecommendations((List<String>) aiResults.get("alternative_strategies"))
                     .mcpEnhanced(true)
@@ -337,7 +388,47 @@ public class McpProfitProtectionService {
     }
     
     private Map<String, Object> extractMarketInsights(Map<String, Object> marketData) {
-        // Extract key market insights from MCP data
+        try {
+            // Try to extract actual market insights from the MCP response
+            List<Map<String, Object>> hits = (List<Map<String, Object>>) marketData.get("hits");
+            if (hits != null && !hits.isEmpty()) {
+                Map<String, Object> firstHit = hits.get(0);
+                
+                Map<String, Object> insights = new HashMap<>();
+                
+                // Extract specific market data fields
+                if (firstHit.containsKey("demand_forecast")) {
+                    insights.put("demand_trend", firstHit.get("demand_forecast"));
+                }
+                if (firstHit.containsKey("competitive_pressure")) {
+                    insights.put("competitive_pressure", firstHit.get("competitive_pressure"));
+                } else {
+                    insights.put("competitive_pressure", "medium");
+                }
+                if (firstHit.containsKey("price_elasticity")) {
+                    Double elasticity = ((Number) firstHit.get("price_elasticity")).doubleValue();
+                    String sensitivity = elasticity > 0.7 ? "high" : elasticity > 0.4 ? "moderate" : "low";
+                    insights.put("price_sensitivity", sensitivity);
+                } else {
+                    insights.put("price_sensitivity", "moderate");
+                }
+                if (firstHit.containsKey("seasonal_trends")) {
+                    insights.put("seasonal_trends", firstHit.get("seasonal_trends"));
+                }
+                if (firstHit.containsKey("brand_strength")) {
+                    insights.put("brand_strength", firstHit.get("brand_strength"));
+                }
+                if (firstHit.containsKey("market_share")) {
+                    insights.put("market_share", firstHit.get("market_share"));
+                }
+                
+                return insights;
+            }
+        } catch (Exception e) {
+            log.warn("⚠️ Failed to extract market insights from MCP data: {}", e.getMessage());
+        }
+        
+        // Fallback to static values if extraction fails
         return Map.of(
                 "competitive_pressure", "medium",
                 "demand_trend", "stable",
@@ -355,7 +446,8 @@ public class McpProfitProtectionService {
     }
     
     private McpProfitAnalysisResult createFallbackResult(String productId, double requestedDiscount, String userId) {
-        // Fallback when MCP analysis fails
+        // Basic fallback when MCP analysis fails
+        log.warn("🔄 Using basic fallback analysis for product: {}", productId);
         return McpProfitAnalysisResult.builder()
                 .productId(productId)
                 .userId(userId)
@@ -369,6 +461,87 @@ public class McpProfitProtectionService {
                 .mcpEnhanced(false)
                 .analysisTimestamp(LocalDateTime.now())
                 .build();
+    }
+    
+    /**
+     * Enhanced fallback with business logic when MCP is disabled or unavailable
+     */
+    private McpProfitAnalysisResult createEnhancedFallbackResult(
+            String productId, 
+            double requestedDiscount, 
+            String userId, 
+            Map<String, Object> marketContext) {
+        
+        log.info("📊 Creating enhanced fallback analysis for product: {}", productId);
+        
+        // Apply business rules for discount approval
+        double maxAllowedDiscount = 25.0; // 25% max
+        double recommendedDiscount = Math.min(requestedDiscount, maxAllowedDiscount);
+        boolean approved = requestedDiscount <= maxAllowedDiscount;
+        
+        // Calculate confidence based on discount size
+        double confidenceScore = calculateFallbackConfidence(requestedDiscount, maxAllowedDiscount);
+        
+        // Determine risk level
+        String riskLevel = requestedDiscount > 20 ? "high" : 
+                          requestedDiscount > 10 ? "medium" : "low";
+        
+        // Generate reasoning
+        String reasoning = String.format(
+            "Business rule analysis: %s discount of %.1f%% (max allowed: %.1f%%). %s",
+            approved ? "Approved" : "Reduced",
+            requestedDiscount,
+            maxAllowedDiscount,
+            approved ? "Within acceptable profit margins." : "Adjusted to protect profit margins."
+        );
+        
+        // Create mock market insights
+        List<String> marketInsights = List.of(
+            "Standard profit protection rules applied",
+            "Conservative discount policy in effect",
+            "No real-time market data available"
+        );
+        
+        // Create mock AI recommendations
+        List<String> aiRecommendations = List.of(
+            approved ? "Discount approved within policy limits" : "Consider alternative engagement strategies",
+            "Monitor conversion rates after discount application",
+            "Enable MCP integration for enhanced AI analysis"
+        );
+        
+        return McpProfitAnalysisResult.builder()
+                .productId(productId)
+                .userId(userId)
+                .requestedDiscount(requestedDiscount)
+                .recommendedDiscount(recommendedDiscount)
+                .finalDiscount(recommendedDiscount)
+                .approved(approved)
+                .confidenceScore(confidenceScore)
+                .riskLevel(riskLevel)
+                .reasoning(reasoning)
+                .marketInsights(Map.of(
+                    "analysis_type", "fallback",
+                    "insights", marketInsights
+                ))
+                .aiRecommendations(aiRecommendations)
+                .mcpEnhanced(false)
+                .analysisTimestamp(LocalDateTime.now())
+                .build();
+    }
+    
+    /**
+     * Calculate confidence score for fallback analysis
+     */
+    private double calculateFallbackConfidence(double requestedDiscount, double maxAllowed) {
+        if (requestedDiscount <= maxAllowed * 0.5) {
+            return 0.9; // High confidence for small discounts
+        } else if (requestedDiscount <= maxAllowed * 0.75) {
+            return 0.75; // Medium-high confidence
+        } else if (requestedDiscount <= maxAllowed) {
+            return 0.6; // Medium confidence
+        } else {
+            return 0.4; // Lower confidence for excessive discounts
+        }
     }
     
     /**

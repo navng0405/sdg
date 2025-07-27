@@ -156,7 +156,8 @@ class AIInsightsDashboard {
             const data = await response.json();
             
             const container = document.getElementById('ai-recommendations');
-            const recommendations = data.aiRecommendations || this.getMockAIRecommendations();
+            // Fix: Use data.aiRecommendations.insights since that's the actual array
+            const recommendations = data.aiRecommendations?.insights || this.getMockAIRecommendations();
             
             container.innerHTML = recommendations.map(rec => `
                 <div class="recommendation-item">
@@ -164,7 +165,7 @@ class AIInsightsDashboard {
                     <small>${rec.description}</small>
                     <div style="margin-top: 0.5rem;">
                         <span style="background: rgba(255,255,255,0.2); padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem;">
-                            Impact: ${rec.impact}
+                            Impact: ${rec.impact || rec.priority}
                         </span>
                     </div>
                 </div>
@@ -189,15 +190,15 @@ class AIInsightsDashboard {
         const loadingId = this.addChatMessage('<div class="loading"></div> Thinking...', 'ai');
         
         try {
-            const response = await fetch(`${this.apiBaseUrl}/ai-chat`, {
+            // Fix: Use the correct MCP chat endpoint
+            const response = await fetch(`${this.apiBaseUrl}/mcp/chat/intelligent-assistant`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
                     message: message,
-                    userId: this.userId,
-                    history: this.chatHistory.slice(-10) // Last 10 messages for context
+                    user_id: this.userId // Fix: use user_id not userId
                 })
             });
             
@@ -207,18 +208,19 @@ class AIInsightsDashboard {
             this.removeChatMessage(loadingId);
             
             // Add AI response
-            this.addChatMessage(data.response || this.generateMockAIResponse(message), 'ai');
+            this.addChatMessage(data.message || this.generateMockAIResponse(message), 'ai');
             
-            // Show suggested products if any
-            if (data.suggestedProducts && data.suggestedProducts.length > 0) {
-                const productsHtml = data.suggestedProducts.slice(0, 3).map(product => `
+            // Show suggested products if any (from MCP suggestions)
+            if (data.suggestions && data.suggestions.length > 0) {
+                const suggestionsHtml = data.suggestions.map(suggestion => `
                     <div style="border: 1px solid #ddd; border-radius: 8px; padding: 0.5rem; margin: 0.25rem 0; background: white;">
-                        <strong>${product.name}</strong><br>
-                        <small>$${product.price} • ⭐ ${product.average_rating || product.rating || 4.5}</small>
+                        <strong>Product ID: ${suggestion.product_id}</strong><br>
+                        <small>Discount: ${suggestion.discount} • Confidence: ${suggestion.confidence}</small><br>
+                        <small>${suggestion.reasoning}</small>
                     </div>
                 `).join('');
                 
-                this.addChatMessage(`Here are some products you might like:<br>${productsHtml}`, 'ai');
+                this.addChatMessage(`Here are some recommendations:<br>${suggestionsHtml}`, 'ai');
             }
             
         } catch (error) {

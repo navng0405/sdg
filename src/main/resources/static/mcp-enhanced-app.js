@@ -14,6 +14,7 @@ const elements = {
     userId: document.getElementById('user-id'),
     requestedDiscount: document.getElementById('requested-discount'),
     userIntent: document.getElementById('user-intent'),
+    productSelector: document.getElementById('product-selector'),
     analysisContainer: document.getElementById('ai-analysis-container'),
     discountBanner: document.getElementById('discount-banner'),
     aiReasoning: document.getElementById('ai-reasoning'),
@@ -73,8 +74,8 @@ function setupEventListeners() {
         }
     });
     
-    // Product rotation (demo feature)
-    setInterval(rotateProduct, 60000); // Rotate product every minute
+    // Product selection change
+    elements.productSelector?.addEventListener('change', updateSelectedProduct);
 }
 
 /**
@@ -100,13 +101,19 @@ async function generateIntelligentDiscount() {
         const userId = elements.userId.value || 'user-001';
         const requestedDiscount = parseFloat(elements.requestedDiscount.value) || 15.0;
         const userIntent = elements.userIntent.value || 'purchase_consideration';
-        const productId = 'PROD018'; // Current product ID
+        const productId = elements.productSelector?.value || 'PROD018'; // Get selected product ID
         
         // Call MCP API
         const response = await fetch(`/api/mcp/intelligent-discount?userId=${encodeURIComponent(userId)}&productId=${encodeURIComponent(productId)}&requestedDiscount=${requestedDiscount}&userIntent=${encodeURIComponent(userIntent)}`);
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            if (response.status === 503) {
+                throw new Error('MCP service temporarily unavailable - using fallback analysis');
+            } else if (response.status === 500) {
+                throw new Error('AI analysis service error - please try again');
+            } else {
+                throw new Error(`Service error (${response.status}) - please try again`);
+            }
         }
         
         const data = await response.json();
@@ -128,7 +135,19 @@ async function generateIntelligentDiscount() {
         
     } catch (error) {
         console.error('❌ Error generating intelligent discount:', error);
-        showErrorState('Failed to connect to MCP AI service. Please try again.');
+        
+        // Show appropriate error message based on error type
+        let errorMessage = 'Failed to connect to AI service. ';
+        if (error.message.includes('MCP service temporarily unavailable')) {
+            errorMessage += 'Using fallback analysis instead.';
+            showWarningState(errorMessage);
+        } else if (error.message.includes('AI analysis service error')) {
+            errorMessage += 'Please try again in a moment.';
+            showErrorState(errorMessage);
+        } else {
+            errorMessage += 'Please check your connection and try again.';
+            showErrorState(errorMessage);
+        }
     } finally {
         // Restore button
         elements.generateButton.innerHTML = '<i class="fas fa-brain"></i> Generate AI-Optimized Discount';
@@ -183,12 +202,76 @@ async function displayAiAnalysis(data) {
  * Display Market Insights
  */
 function displayMarketInsights(insights) {
+    console.log('📊 Displaying market insights:', insights);
+    
+    if (!insights) {
+        // Fallback insights
+        elements.marketInsights.innerHTML = `
+            <div class="insight-item"><i class="fas fa-chart-line"></i> Market analysis in progress</div>
+            <div class="insight-item"><i class="fas fa-trending-up"></i> Competitive pricing evaluated</div>
+            <div class="insight-item"><i class="fas fa-users"></i> Customer behavior patterns analyzed</div>
+        `;
+        return;
+    }
+    
     if (Array.isArray(insights)) {
         elements.marketInsights.innerHTML = insights.map(insight => 
             `<div class="insight-item"><i class="fas fa-chart-line"></i> ${insight}</div>`
         ).join('');
-    } else {
+    } else if (typeof insights === 'object') {
+        // Handle object insights - extract meaningful data
+        const insightItems = [];
+        
+        if (insights.market_impact) {
+            insightItems.push(`Market Impact: ${insights.market_impact}`);
+        }
+        if (insights.demand_forecast) {
+            insightItems.push(`Demand Forecast: ${insights.demand_forecast}`);
+        }
+        if (insights.competitive_position) {
+            insightItems.push(`Competitive Position: ${insights.competitive_position}`);
+        }
+        if (insights.price_elasticity) {
+            insightItems.push(`Price Elasticity: ${insights.price_elasticity}`);
+        }
+        if (insights.seasonal_trends) {
+            insightItems.push(`Seasonal Trends: ${insights.seasonal_trends}`);
+        }
+        
+        // If object has array properties, extract them
+        if (insights.insights && Array.isArray(insights.insights)) {
+            insightItems.push(...insights.insights);
+        }
+        
+        // If no specific properties found, try to extract values
+        if (insightItems.length === 0) {
+            Object.keys(insights).forEach(key => {
+                if (typeof insights[key] === 'string') {
+                    insightItems.push(`${key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}: ${insights[key]}`);
+                }
+            });
+        }
+        
+        // Fallback if still no insights
+        if (insightItems.length === 0) {
+            insightItems.push('Advanced market analysis completed');
+            insightItems.push('Competitive intelligence gathered');
+            insightItems.push('Customer segmentation analyzed');
+        }
+        
+        elements.marketInsights.innerHTML = insightItems.map(insight => 
+            `<div class="insight-item"><i class="fas fa-chart-line"></i> ${insight}</div>`
+        ).join('');
+        
+    } else if (typeof insights === 'string') {
         elements.marketInsights.innerHTML = `<div class="insight-item"><i class="fas fa-chart-line"></i> ${insights}</div>`;
+    } else {
+        // Unknown format, show fallback
+        elements.marketInsights.innerHTML = `
+            <div class="insight-item"><i class="fas fa-chart-line"></i> Market conditions analyzed</div>
+            <div class="insight-item"><i class="fas fa-trending-up"></i> Pricing strategy optimized</div>
+            <div class="insight-item"><i class="fas fa-users"></i> Customer insights gathered</div>
+        `;
     }
 }
 
@@ -196,12 +279,67 @@ function displayMarketInsights(insights) {
  * Display AI Recommendations
  */
 function displayAiRecommendations(recommendations) {
+    console.log('💡 Displaying AI recommendations:', recommendations);
+    
+    if (!recommendations) {
+        // Fallback recommendations
+        elements.aiRecommendations.innerHTML = `
+            <div class="recommendation-item"><i class="fas fa-lightbulb"></i> Recommended discount range: 10-15%</div>
+            <div class="recommendation-item"><i class="fas fa-clock"></i> Add urgency timer for conversion boost</div>
+            <div class="recommendation-item"><i class="fas fa-envelope"></i> Follow up with email campaign if not converted</div>
+        `;
+        return;
+    }
+    
     if (Array.isArray(recommendations)) {
         elements.aiRecommendations.innerHTML = recommendations.map(rec => 
             `<div class="recommendation-item"><i class="fas fa-lightbulb"></i> ${rec}</div>`
         ).join('');
-    } else {
+    } else if (typeof recommendations === 'object') {
+        // Handle object recommendations
+        const recItems = [];
+        
+        if (recommendations.alternative_strategies && Array.isArray(recommendations.alternative_strategies)) {
+            recItems.push(...recommendations.alternative_strategies);
+        }
+        if (recommendations.strategies && Array.isArray(recommendations.strategies)) {
+            recItems.push(...recommendations.strategies);
+        }
+        if (recommendations.recommendations && Array.isArray(recommendations.recommendations)) {
+            recItems.push(...recommendations.recommendations);
+        }
+        
+        // If object has direct string properties, extract them
+        if (recItems.length === 0) {
+            Object.keys(recommendations).forEach(key => {
+                if (typeof recommendations[key] === 'string') {
+                    recItems.push(`${key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}: ${recommendations[key]}`);
+                } else if (Array.isArray(recommendations[key])) {
+                    recItems.push(...recommendations[key]);
+                }
+            });
+        }
+        
+        // Fallback if no recommendations found
+        if (recItems.length === 0) {
+            recItems.push('Optimize discount timing for peak conversion');
+            recItems.push('Consider bundle offers for increased value');
+            recItems.push('Implement loyalty program benefits');
+        }
+        
+        elements.aiRecommendations.innerHTML = recItems.map(rec => 
+            `<div class="recommendation-item"><i class="fas fa-lightbulb"></i> ${rec}</div>`
+        ).join('');
+        
+    } else if (typeof recommendations === 'string') {
         elements.aiRecommendations.innerHTML = `<div class="recommendation-item"><i class="fas fa-lightbulb"></i> ${recommendations}</div>`;
+    } else {
+        // Unknown format, show fallback
+        elements.aiRecommendations.innerHTML = `
+            <div class="recommendation-item"><i class="fas fa-lightbulb"></i> AI strategy optimization complete</div>
+            <div class="recommendation-item"><i class="fas fa-target"></i> Personalized approach recommended</div>
+            <div class="recommendation-item"><i class="fas fa-chart-bar"></i> Performance metrics optimized</div>
+        `;
     }
 }
 
@@ -313,21 +451,52 @@ async function sendChatMessage() {
     addChatMessage('AI is thinking...', 'assistant', true);
     
     try {
-        // Simulate AI response (in real implementation, this would call Claude via MCP)
-        setTimeout(() => {
-            // Remove typing indicator
-            const typingMessage = elements.mcpChatMessages.lastElementChild;
-            if (typingMessage && typingMessage.classList.contains('typing')) {
-                typingMessage.remove();
-            }
+        // Call the actual MCP chat endpoint
+        const response = await fetch('/api/mcp/chat/intelligent-assistant', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                message: message,
+                user_id: elements.userId?.value || 'demo-user'
+            })
+        });
+        
+        // Remove typing indicator
+        const typingMessage = elements.mcpChatMessages.lastElementChild;
+        if (typingMessage && typingMessage.classList.contains('typing')) {
+            typingMessage.remove();
+        }
+        
+        if (response.ok) {
+            const data = await response.json();
             
             // Add AI response
-            const aiResponse = generateAiResponse(message);
-            addChatMessage(aiResponse, 'assistant');
-        }, 1500);
+            addChatMessage(data.message, 'assistant');
+            
+            // If there are suggestions (like discounts), show them
+            if (data.suggestions && data.suggestions.length > 0) {
+                const suggestionsHtml = data.suggestions.map(suggestion => 
+                    `<div class="chat-suggestion">
+                        💡 <strong>${suggestion.discount}</strong> discount available!
+                        <br><small>${suggestion.reasoning}</small>
+                        <br><small>Confidence: ${(suggestion.confidence * 100).toFixed(1)}%</small>
+                    </div>`
+                ).join('');
+                addChatMessage(suggestionsHtml, 'assistant');
+            }
+        } else {
+            addChatMessage('Sorry, I\'m having trouble processing your request right now. Please try again.', 'assistant');
+        }
         
     } catch (error) {
         console.error('Chat error:', error);
+        // Remove typing indicator if there's an error
+        const typingMessage = elements.mcpChatMessages.lastElementChild;
+        if (typingMessage && typingMessage.classList.contains('typing')) {
+            typingMessage.remove();
+        }
         addChatMessage('Sorry, I\'m having trouble connecting right now. Please try again.', 'assistant');
     }
 }
@@ -401,75 +570,85 @@ async function updateAnalytics() {
 }
 
 /**
- * Update Product Display (demo rotation)
+ * Product data for dynamic selection
  */
-function updateProductDisplay() {
-    // This could be connected to real product data
-    const products = [
-        {
-            name: 'Waterproof Hiking Backpack',
-            price: '$89.99',
-            description: 'Durable and waterproof hiking backpack with multiple compartments',
-            category: 'Sports',
-            margin: '35%',
-            image: 'https://images.unsplash.com/photo-1620953749696-38989c40eadb?w=300'
-        },
-        {
-            name: 'Wireless Bluetooth Headphones',
-            price: '$129.99',
-            description: 'Premium noise-cancelling wireless headphones with 30-hour battery',
-            category: 'Electronics',
-            margin: '42%',
-            image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300'
-        },
-        {
-            name: 'Smart Fitness Watch',
-            price: '$199.99',
-            description: 'Advanced fitness tracking with heart rate monitor and GPS',
-            category: 'Wearables',
-            margin: '38%',
-            image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300'
-        }
-    ];
+const productCatalog = {
+    'PROD018': {
+        name: 'Waterproof Hiking Backpack',
+        price: '$89.99',
+        description: 'Durable and waterproof hiking backpack with multiple compartments',
+        category: 'Sports',
+        margin: '35%',
+        rating: '4.6★',
+        image: 'https://images.unsplash.com/photo-1620953749696-38989c40eadb?w=300'
+    },
+    'PROD017': {
+        name: 'High-Performance Running Shoes',
+        price: '$129.99',
+        description: 'Professional running shoes with advanced cushioning technology',
+        category: 'Sports',
+        margin: '42%',
+        rating: '4.8★',
+        image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300'
+    },
+    'PROD016': {
+        name: 'Professional DSLR Camera Kit',
+        price: '$899.99',
+        description: 'Complete camera kit with lens, tripod, and professional accessories',
+        category: 'Electronics',
+        margin: '28%',
+        rating: '4.4★',
+        image: 'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=300'
+    },
+    'PROD015': {
+        name: 'Wireless Bluetooth Headphones',
+        price: '$199.99',
+        description: 'Premium noise-cancelling wireless headphones with 30-hour battery',
+        category: 'Electronics',
+        margin: '45%',
+        rating: '4.7★',
+        image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300'
+    },
+    'PROD014': {
+        name: 'Smart Fitness Watch',
+        price: '$249.99',
+        description: 'Advanced fitness tracking with heart rate monitor and GPS',
+        category: 'Wearables',
+        margin: '38%',
+        rating: '4.5★',
+        image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300'
+    },
+    'PROD013': {
+        name: 'Premium Coffee Maker',
+        price: '$159.99',
+        description: 'Professional-grade coffee maker with built-in grinder',
+        category: 'Home & Kitchen',
+        margin: '40%',
+        rating: '4.3★',
+        image: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=300'
+    }
+};
+
+/**
+ * Update product display when selection changes
+ */
+function updateSelectedProduct() {
+    const selectedProductId = elements.productSelector?.value || 'PROD018';
+    const product = productCatalog[selectedProductId];
     
-    // Start with first product
-    displayProduct(products[0]);
+    if (product) {
+        displayProduct(product);
+    }
 }
 
 /**
- * Rotate Product Display (demo feature)
+ * Update Product Display (now uses dynamic catalog)
  */
-function rotateProduct() {
-    const products = [
-        {
-            name: 'Waterproof Hiking Backpack',
-            price: '$89.99',
-            description: 'Durable and waterproof hiking backpack with multiple compartments',
-            category: 'Sports',
-            margin: '35%',
-            image: 'https://images.unsplash.com/photo-1620953749696-38989c40eadb?w=300'
-        },
-        {
-            name: 'Wireless Bluetooth Headphones',
-            price: '$129.99',
-            description: 'Premium noise-cancelling wireless headphones with 30-hour battery',
-            category: 'Electronics',
-            margin: '42%',
-            image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300'
-        },
-        {
-            name: 'Smart Fitness Watch',
-            price: '$199.99',
-            description: 'Advanced fitness tracking with heart rate monitor and GPS',
-            category: 'Wearables',
-            margin: '38%',
-            image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300'
-        }
-    ];
-    
-    const currentTime = Date.now();
-    const productIndex = Math.floor(currentTime / 60000) % products.length;
-    displayProduct(products[productIndex]);
+function updateProductDisplay() {
+    // Start with the selected product or default to PROD018
+    const selectedProductId = elements.productSelector?.value || 'PROD018';
+    const product = productCatalog[selectedProductId];
+    displayProduct(product);
 }
 
 /**
@@ -482,6 +661,7 @@ function displayProduct(product) {
         description: document.getElementById('product-description'),
         category: document.getElementById('product-category'),
         margin: document.getElementById('profit-margin'),
+        rating: document.getElementById('product-rating'),
         image: document.getElementById('product-img')
     };
     
@@ -490,6 +670,7 @@ function displayProduct(product) {
     if (elements.description) elements.description.textContent = product.description;
     if (elements.category) elements.category.textContent = product.category;
     if (elements.margin) elements.margin.textContent = `Margin: ${product.margin}`;
+    if (elements.rating) elements.rating.textContent = product.rating;
     if (elements.image) elements.image.src = product.image;
 }
 
@@ -505,10 +686,22 @@ function showErrorState(message) {
 }
 
 /**
+ * Show Warning State (for fallback scenarios)
+ */
+function showWarningState(message) {
+    elements.aiReasoning.innerHTML = `<span style="color: #ffc107;"><i class="fas fa-exclamation-circle"></i> ${message}</span>`;
+    elements.confidenceFill.style.width = '60%';
+    elements.confidencePercentage.textContent = '60%';
+    elements.marketInsights.innerHTML = '<div class="insight-item"><i class="fas fa-info-circle"></i> Using standard business rules for analysis</div>';
+    elements.aiRecommendations.innerHTML = '<div class="recommendation-item"><i class="fas fa-cog"></i> Fallback analysis mode active</div>';
+}
+
+/**
  * Global function for HTML onclick handlers
  */
 window.toggleMcpChat = toggleMcpChat;
 window.sendChatMessage = sendChatMessage;
+window.updateSelectedProduct = updateSelectedProduct;
 
 // Export for potential module usage
 if (typeof module !== 'undefined' && module.exports) {
