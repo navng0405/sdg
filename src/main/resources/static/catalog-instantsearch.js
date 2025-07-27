@@ -66,7 +66,7 @@ class InstantSearchCatalog {
                     item: (hit, { html, components }) => html`
                         <div class="product-card" data-product-id="${hit.objectID}">
                             <img 
-                                src="${hit.imageUrl || `https://via.placeholder.com/300x200/4A90E2/FFFFFF?text=${encodeURIComponent(hit.name)}`}" 
+                                src="${hit.image_url || `https://via.placeholder.com/300x200/4A90E2/FFFFFF?text=${encodeURIComponent(hit.name)}`}"
                                 alt="${hit.name}" 
                                 class="product-image"
                                 loading="lazy"
@@ -87,7 +87,7 @@ class InstantSearchCatalog {
                                     <div class="stars">
                                         ${this.renderStars(hit.rating || 4.5)}
                                     </div>
-                                    <span class="rating-text">(${hit.numberOfReviews || 100} reviews)</span>
+                                    <span class="rating-text">(${hit.number_of_reviews || 100} reviews)</span>
                                 </div>
                                 
                                 <div class="product-actions">
