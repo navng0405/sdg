@@ -7,6 +7,8 @@
 let mcpChatVisible = false;
 let countdownTimer = null;
 let currentAnalysis = null;
+let selectedProduct = null;
+let availableProducts = [];
 
 // DOM Elements
 const elements = {
@@ -30,7 +32,17 @@ const elements = {
     mcpChatFab: document.getElementById('mcp-chat-fab'),
     mcpChatContainer: document.getElementById('mcp-chat-container'),
     mcpChatMessages: document.getElementById('mcp-chat-messages'),
-    chatInput: document.getElementById('chat-input')
+    chatInput: document.getElementById('chat-input'),
+    productSearch: document.getElementById('product-search'),
+    searchButton: document.getElementById('search-products'),
+    productGrid: document.getElementById('product-grid'),
+    selectedProductDiv: document.getElementById('selected-product'),
+    productImage: document.getElementById('product-image'),
+    productName: document.getElementById('product-name'),
+    productPrice: document.getElementById('product-price'),
+    productCategory: document.getElementById('product-category'),
+    stockStatus: document.getElementById('stock-status'),
+    profitMargin: document.getElementById('profit-margin')
 };
 
 /**
@@ -76,6 +88,204 @@ function setupEventListeners() {
     
     // Product selection change
     elements.productSelector?.addEventListener('change', updateSelectedProduct);
+    
+    // Product search functionality
+    elements.searchButton?.addEventListener('click', searchProducts);
+    elements.productSearch?.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            searchProducts();
+        }
+    });
+    
+    // Load initial products
+    loadInitialProducts();
+}
+
+/**
+ * Load initial products from Algolia
+ */
+async function loadInitialProducts() {
+    try {
+        console.log('🔍 Loading initial products...');
+        elements.productGrid.innerHTML = '<div class="loading-spinner"></div> Loading products...';
+        
+        const response = await fetch('/api/algolia/products?limit=12');
+        if (response.ok) {
+            const products = await response.json();
+            availableProducts = products;
+            displayProducts(products);
+        } else {
+            // Fallback to demo products
+            availableProducts = getDemoProducts();
+            displayProducts(availableProducts);
+        }
+    } catch (error) {
+        console.error('Error loading products:', error);
+        // Fallback to demo products
+        availableProducts = getDemoProducts();
+        displayProducts(availableProducts);
+    }
+}
+
+/**
+ * Search products based on user input
+ */
+async function searchProducts() {
+    const query = elements.productSearch.value.trim();
+    
+    if (!query) {
+        displayProducts(availableProducts);
+        return;
+    }
+    
+    try {
+        console.log('🔍 Searching products for:', query);
+        elements.productGrid.innerHTML = '<div class="loading-spinner"></div> Searching...';
+        
+        const response = await fetch(`/api/algolia/search?query=${encodeURIComponent(query)}&limit=12`);
+        if (response.ok) {
+            const results = await response.json();
+            displayProducts(results.hits || results);
+        } else {
+            // Fallback to local search
+            const filtered = availableProducts.filter(product => 
+                product.name.toLowerCase().includes(query.toLowerCase()) ||
+                product.category.toLowerCase().includes(query.toLowerCase())
+            );
+            displayProducts(filtered);
+        }
+    } catch (error) {
+        console.error('Error searching products:', error);
+        // Fallback to local search
+        const filtered = availableProducts.filter(product => 
+            product.name.toLowerCase().includes(query.toLowerCase()) ||
+            product.category.toLowerCase().includes(query.toLowerCase())
+        );
+        displayProducts(filtered);
+    }
+}
+
+/**
+ * Display products in the grid
+ */
+function displayProducts(products) {
+    if (!products || products.length === 0) {
+        elements.productGrid.innerHTML = '<p style="text-align: center; color: #666; padding: 40px;">No products found. Try a different search term.</p>';
+        return;
+    }
+    
+    elements.productGrid.innerHTML = products.map(product => `
+        <div class="product-grid-item" onclick="selectProduct('${product.objectID || product.id}')">
+            <img src="${product.image_url || product.image || 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=200&h=200&fit=crop'}" 
+                 alt="${product.name}" 
+                 onerror="this.src='https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=200&h=200&fit=crop'">
+            <h5>${product.name}</h5>
+            <div class="price">$${product.price}</div>
+            <div class="category">${product.category}</div>
+        </div>
+    `).join('');
+    
+    console.log(`📦 Displayed ${products.length} products`);
+}
+
+/**
+ * Select a product for discount generation
+ */
+function selectProduct(productId) {
+    const product = availableProducts.find(p => (p.objectID || p.id) === productId);
+    if (!product) {
+        console.error('Product not found:', productId);
+        return;
+    }
+    
+    selectedProduct = product;
+    
+    // Update selected product display
+    elements.productImage.src = product.image_url || product.image || 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=200&h=200&fit=crop';
+    elements.productName.textContent = product.name;
+    elements.productPrice.textContent = `$${product.price}`;
+    elements.productCategory.textContent = product.category;
+    elements.stockStatus.textContent = product.stock > 0 ? 'In Stock' : 'Out of Stock';
+    elements.profitMargin.textContent = `Margin: ${product.profit_margin || '35'}%`;
+    
+    // Show selected product section
+    elements.selectedProductDiv.style.display = 'block';
+    
+    // Update grid selection
+    document.querySelectorAll('.product-grid-item').forEach(item => {
+        item.classList.remove('selected');
+    });
+    event.target.closest('.product-grid-item').classList.add('selected');
+    
+    console.log('✅ Selected product:', product.name);
+}
+
+/**
+ * Get demo products as fallback
+ */
+function getDemoProducts() {
+    return [
+        {
+            id: 'PROD018',
+            objectID: 'PROD018',
+            name: 'Waterproof Hiking Backpack',
+            price: 89.99,
+            category: 'Sports',
+            image_url: 'https://images.unsplash.com/photo-1620953749696-38989c40eadb?w=300',
+            stock: 15,
+            profit_margin: 35
+        },
+        {
+            id: 'PROD017',
+            objectID: 'PROD017',
+            name: 'High-Performance Running Shoes',
+            price: 129.99,
+            category: 'Sports',
+            image_url: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300',
+            stock: 8,
+            profit_margin: 42
+        },
+        {
+            id: 'PROD016',
+            objectID: 'PROD016',
+            name: 'Professional DSLR Camera Kit',
+            price: 899.99,
+            category: 'Electronics',
+            image_url: 'https://images.unsplash.com/photo-1606983340126-99ab4feaa64a?w=300',
+            stock: 3,
+            profit_margin: 28
+        },
+        {
+            id: 'PROD015',
+            objectID: 'PROD015',
+            name: 'Wireless Bluetooth Headphones',
+            price: 199.99,
+            category: 'Electronics',
+            image_url: 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=300',
+            stock: 12,
+            profit_margin: 45
+        },
+        {
+            id: 'PROD014',
+            objectID: 'PROD014',
+            name: 'Smart Fitness Watch',
+            price: 249.99,
+            category: 'Electronics',
+            image_url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300',
+            stock: 6,
+            profit_margin: 38
+        },
+        {
+            id: 'PROD013',
+            objectID: 'PROD013',
+            name: 'Premium Coffee Maker',
+            price: 159.99,
+            category: 'Home',
+            image_url: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=300',
+            stock: 9,
+            profit_margin: 32
+        }
+    ];
 }
 
 /**
@@ -97,11 +307,21 @@ async function generateIntelligentDiscount() {
         // Animate confidence score to show processing
         animateConfidenceScore(0, 25, 1000);
         
+        // Check if product is selected
+        if (!selectedProduct) {
+            alert('Please select a product first!');
+            button.innerHTML = originalText;
+            button.disabled = false;
+            return;
+        }
+        
         // Get form data
         const userId = elements.userId.value || 'user-001';
-        const requestedDiscount = parseFloat(elements.requestedDiscount.value) || 15.0;
-        const userIntent = elements.userIntent.value || 'purchase_consideration';
-        const productId = elements.productSelector?.value || 'PROD018'; // Get selected product ID
+        const requestedDiscount = parseFloat(elements.requestedDiscount.value) || 15;
+        const userIntent = elements.userIntent.value || 'price_sensitive';
+        const productId = selectedProduct.objectID || selectedProduct.id;
+        
+        console.log('🎯 Generating discount for:', { userId, productId, requestedDiscount, userIntent, productName: selectedProduct.name });
         
         // Call MCP API
         const response = await fetch(`/api/mcp/intelligent-discount?userId=${encodeURIComponent(userId)}&productId=${encodeURIComponent(productId)}&requestedDiscount=${requestedDiscount}&userIntent=${encodeURIComponent(userIntent)}`);
