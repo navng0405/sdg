@@ -389,19 +389,80 @@ body {
 }
 
 .user-info input:focus {
-    outline: none;
-    border-color: #3498db;
+outline: none;
+border-color: #3498db;
 }
 
 .behavior-buttons {
-    display: grid;
-    gap: 15px;
-    margin-bottom: 25px;
+display: grid;
+gap: 15px;
+margin-bottom: 25px;
+}
+
+.product-actions {
+display: flex;
+gap: 15px;
+margin-top: 20px;
+}
+
+/* Product Switch Controls */
+.product-switch-controls {
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 1rem;
+margin-top: 1.5rem;
+padding: 1rem;
+background: rgba(255, 255, 255, 0.1);
+border-radius: 12px;
+backdrop-filter: blur(10px);
+}
+
+.switch-btn {
+background: rgba(255, 255, 255, 0.2);
+border: 1px solid rgba(255, 255, 255, 0.3);
+color: white;
+width: 40px;
+height: 40px;
+border-radius: 50%;
+display: flex;
+align-items: center;
+justify-content: center;
+cursor: pointer;
+transition: all 0.3s ease;
+font-size: 1rem;
+}
+
+.switch-btn:hover {
+background: rgba(255, 255, 255, 0.3);
+transform: scale(1.1);
+box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.switch-btn:active {
+transform: scale(0.95);
+}
+
+.product-counter {
+color: white;
+font-weight: 500;
+font-size: 0.9rem;
+padding: 0.5rem 1rem;
+background: rgba(255, 255, 255, 0.1);
+border-radius: 20px;
+border: 1px solid rgba(255, 255, 255, 0.2);
+min-width: 80px;
+text-align: center;
 }
 
 .sim-btn {
-    background: #ecf0f1;
-    border: 2px solid transparent;
+background: #ecf0f1;
+border: 2px solid transparent;
+border-radius: 10px;
+padding: 15px;
+cursor: pointer;
+transition: all 0.3s ease;
+text-align: left;
     border-radius: 10px;
     padding: 15px;
     cursor: pointer;

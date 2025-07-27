@@ -3,25 +3,23 @@ class SmartDiscountGenerator {
     constructor() {
         this.apiBaseUrl = 'http://localhost:8080/api';
         this.currentUserId = 'user-001';
-        this.currentProduct = {
-            id: 'PROD001',
-            name: 'Wireless Bluetooth Headphones',
-            price: 199.99
-        };
+        this.currentProduct = null;
+        this.allProducts = [];
+        this.currentProductIndex = 0;
         this.countdownTimer = null;
         this.behaviorHistory = [];
         
         this.init();
     }
     
-    init() {
+    async init() {
         this.setupEventListeners();
-        this.loadInitialData();
+        await this.loadInitialData();
         this.updateSystemStatus();
         
         // Simulate some initial user behavior
         setTimeout(() => {
-            this.addToBrowseHistory('search', 'Searched for: "wireless headphones"');
+            this.addToBrowseHistory('search', `Searched for: "${this.currentProduct?.category || 'products'}"`);
         }, 1000);
     }
     
@@ -80,17 +78,205 @@ class SmartDiscountGenerator {
         });
     }
     
-    loadInitialData() {
-        // Load product data
-        this.updateProductDisplay();
-        
-        // Load user behavior history
-        this.loadUserBehaviorHistory();
+    async loadInitialData() {
+        try {
+            this.showLoading('Loading product data...');
+            
+            // Load products from Algolia API
+            await this.loadProductsFromAPI();
+            
+            // Set initial product (first product or random)
+            if (this.allProducts.length > 0) {
+                this.currentProductIndex = Math.floor(Math.random() * Math.min(this.allProducts.length, 5));
+                this.currentProduct = this.allProducts[this.currentProductIndex];
+                this.updateProductDisplay();
+            } else {
+                // Fallback to static product if API fails
+                this.currentProduct = {
+                    id: 'PROD001',
+                    objectId: 'PROD001',
+                    name: 'Wireless Bluetooth Headphones',
+                    description: 'Premium noise-cancelling wireless headphones with 30-hour battery life',
+                    price: 199.99,
+                    category: 'Electronics',
+                    imageUrl: 'https://images.unsplash.com/photo-1484704849700-f032a568e944?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0',
+                    rating: 4.5,
+                    numberOfReviews: 1250
+                };
+                this.updateProductDisplay();
+            }
+            
+            // Load user behavior history
+            this.loadUserBehaviorHistory();
+            
+        } catch (error) {
+            console.error('Error loading initial data:', error);
+            this.showError('Failed to load product data');
+        } finally {
+            this.hideLoading();
+        }
+    }
+    
+    async loadProductsFromAPI() {
+        try {
+            const response = await fetch(`${this.apiBaseUrl}/products?limit=20`);
+            if (response.ok) {
+                const data = await response.json();
+                console.log('Loaded products from API:', data);
+                
+                // Convert API products to internal format
+                this.allProducts = data.products.map(product => ({
+                    id: product.objectId,
+                    objectId: product.objectId,
+                    name: product.name,
+                    description: product.description,
+                    price: parseFloat(product.price),
+                    category: product.category,
+                    imageUrl: product.imageUrl || `https://via.placeholder.com/400x300/4A90E2/FFFFFF?text=${encodeURIComponent(product.name)}`,
+                    rating: product.rating || 4.5,
+                    numberOfReviews: product.numberOfReviews || 100,
+                    profitMargin: product.profitMargin || 0.3
+                }));
+                
+                console.log(`Loaded ${this.allProducts.length} products`);
+            } else {
+                throw new Error(`API request failed with status: ${response.status}`);
+            }
+        } catch (error) {
+            console.error('Error loading products from API:', error);
+            this.allProducts = []; // Will trigger fallback
+        }
     }
     
     updateProductDisplay() {
+        if (!this.currentProduct) return;
+        
+        // Update product name
         document.getElementById('product-name').textContent = this.currentProduct.name;
-        document.getElementById('product-price').textContent = `$${this.currentProduct.price}`;
+        
+        // Update product description
+        const descriptionElement = document.getElementById('product-description');
+        if (descriptionElement) {
+            descriptionElement.textContent = this.currentProduct.description || 'No description available';
+        }
+        
+        // Update product image
+        const imageElement = document.getElementById('product-image');
+        if (imageElement) {
+            imageElement.src = this.currentProduct.imageUrl;
+            imageElement.alt = this.currentProduct.name;
+        }
+        
+        // Update product price
+        document.getElementById('product-price').textContent = `$${this.currentProduct.price.toFixed(2)}`;
+        
+        // Update product rating
+        const ratingElement = document.getElementById('product-rating');
+        if (ratingElement) {
+            ratingElement.textContent = this.currentProduct.rating.toFixed(1);
+        }
+        
+        // Update reviews count
+        const reviewsElement = document.getElementById('product-reviews');
+        if (reviewsElement) {
+            reviewsElement.textContent = `(${this.currentProduct.numberOfReviews.toLocaleString()} reviews)`;
+        }
+        
+        // Update stars display
+        this.updateStarsDisplay(this.currentProduct.rating);
+        
+        // Add product switch functionality
+        this.addProductSwitchControls();
+        
+        console.log('Updated product display for:', this.currentProduct.name);
+    }
+    
+    updateStarsDisplay(rating) {
+        const starsContainer = document.querySelector('.stars');
+        if (!starsContainer) return;
+        
+        starsContainer.innerHTML = '';
+        const fullStars = Math.floor(rating);
+        const hasHalfStar = rating % 1 !== 0;
+        
+        // Add full stars
+        for (let i = 0; i < fullStars; i++) {
+            starsContainer.innerHTML += '<i class="fas fa-star"></i>';
+        }
+        
+        // Add half star if needed
+        if (hasHalfStar) {
+            starsContainer.innerHTML += '<i class="fas fa-star-half-alt"></i>';
+        }
+        
+        // Add empty stars
+        const emptyStars = 5 - Math.ceil(rating);
+        for (let i = 0; i < emptyStars; i++) {
+            starsContainer.innerHTML += '<i class="far fa-star"></i>';
+        }
+    }
+    
+    addProductSwitchControls() {
+        // Add next/previous product buttons if not already added
+        if (this.allProducts.length > 1 && !document.getElementById('product-switch-controls')) {
+            const productSection = document.querySelector('.product-section');
+            const switchControls = document.createElement('div');
+            switchControls.id = 'product-switch-controls';
+            switchControls.className = 'product-switch-controls';
+            switchControls.innerHTML = `
+                <button id="prev-product-btn" class="switch-btn" title="Previous Product">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="product-counter">${this.currentProductIndex + 1} of ${this.allProducts.length}</span>
+                <button id="next-product-btn" class="switch-btn" title="Next Product">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            `;
+            
+            productSection.appendChild(switchControls);
+            
+            // Add event listeners for product switching
+            document.getElementById('prev-product-btn').addEventListener('click', () => {
+                this.switchToPreviousProduct();
+            });
+            
+            document.getElementById('next-product-btn').addEventListener('click', () => {
+                this.switchToNextProduct();
+            });
+        } else if (document.getElementById('product-switch-controls')) {
+            // Update counter if controls already exist
+            const counter = document.querySelector('.product-counter');
+            if (counter) {
+                counter.textContent = `${this.currentProductIndex + 1} of ${this.allProducts.length}`;
+            }
+        }
+    }
+    
+    switchToNextProduct() {
+        if (this.allProducts.length > 1) {
+            this.currentProductIndex = (this.currentProductIndex + 1) % this.allProducts.length;
+            this.currentProduct = this.allProducts[this.currentProductIndex];
+            this.updateProductDisplay();
+            this.trackBehavior('product_switch', { 
+                productId: this.currentProduct.id,
+                direction: 'next'
+            });
+            this.addToBrowseHistory('view', `Viewed: ${this.currentProduct.name}`);
+        }
+    }
+    
+    switchToPreviousProduct() {
+        if (this.allProducts.length > 1) {
+            this.currentProductIndex = this.currentProductIndex === 0 ? 
+                this.allProducts.length - 1 : this.currentProductIndex - 1;
+            this.currentProduct = this.allProducts[this.currentProductIndex];
+            this.updateProductDisplay();
+            this.trackBehavior('product_switch', { 
+                productId: this.currentProduct.id,
+                direction: 'previous'
+            });
+            this.addToBrowseHistory('view', `Viewed: ${this.currentProduct.name}`);
+        }
     }
     
     async loadUserBehaviorHistory() {
@@ -306,24 +492,50 @@ class SmartDiscountGenerator {
     }
     
     async generateDiscount() {
-        this.showLoading('Generating AI-powered discount...');
+        if (!this.currentProduct) {
+            this.showError('No product selected for discount generation');
+            return;
+        }
+        
+        this.showLoading(`Generating personalized discount for ${this.currentProduct.name}...`);
         
         try {
-            const response = await fetch(`${this.apiBaseUrl}/get-discount?userId=${this.currentUserId}`);
-            const data = await response.json();
+            // Include product-specific information in the discount request
+            const requestUrl = `${this.apiBaseUrl}/get-discount?userId=${this.currentUserId}&productId=${this.currentProduct.objectId}`;
+            const response = await fetch(requestUrl);
             
-            this.hideLoading();
-            
-            if (data.status === 'offer_generated' && data.discount) {
-                this.showDiscountBanner(data.discount);
-                this.updateSystemStatus();
+            if (response.ok) {
+                const data = await response.json();
+                if (data.discount) {
+                    // Add product context to the discount data
+                    data.discount.productId = this.currentProduct.objectId;
+                    data.discount.productName = this.currentProduct.name;
+                    data.discount.originalPrice = this.currentProduct.price;
+                    
+                    this.showDiscountBanner(data.discount);
+                    this.addToBrowseHistory('discount', 
+                        `AI generated ${data.discount.percentage}% discount for ${this.currentProduct.name}`);
+                    
+                    // Track the discount generation event
+                    this.trackBehavior('discount_generated', {
+                        productId: this.currentProduct.objectId,
+                        productName: this.currentProduct.name,
+                        discountPercentage: data.discount.percentage,
+                        discountCode: data.discount.code
+                    });
+                } else {
+                    this.showNoDiscountMessage(
+                        data.message || `No discount available for ${this.currentProduct.name} at this time`
+                    );
+                }
             } else {
-                this.showNoDiscountMessage(data.message);
+                this.showNoDiscountMessage('Unable to generate discount at this time');
             }
         } catch (error) {
-            this.hideLoading();
             console.error('Error generating discount:', error);
             this.showError('Failed to generate discount. Please try again.');
+        } finally {
+            this.hideLoading();
         }
     }
     
