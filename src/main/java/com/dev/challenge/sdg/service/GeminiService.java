@@ -79,12 +79,17 @@ public class GeminiService {
         prompt.append("- Reviews: ").append(product.getNumberOfReviews()).append("\n\n");
         
         prompt.append("USER BEHAVIOR SIGNALS:\n");
-        for (UserEvent event : behaviorSignals) {
-            prompt.append("- ").append(event.getEventType()).append(" at ").append(event.getTimestamp());
-            if (event.getDetails() != null && !event.getDetails().isEmpty()) {
-                prompt.append(" (").append(event.getDetails()).append(")");
+        if (behaviorSignals == null || behaviorSignals.isEmpty()) {
+            prompt.append("- No specific behavior history available - user is directly requesting discount for this product\n");
+            prompt.append("- This indicates strong purchase intent for the specific product\n");
+        } else {
+            for (UserEvent event : behaviorSignals) {
+                prompt.append("- ").append(event.getEventType()).append(" at ").append(event.getTimestamp());
+                if (event.getDetails() != null && !event.getDetails().isEmpty()) {
+                    prompt.append(" (").append(event.getDetails()).append(")");
+                }
+                prompt.append("\n");
             }
-            prompt.append("\n");
         }
         
         prompt.append("\nCONSTRAINTS:\n");
@@ -92,11 +97,16 @@ public class GeminiService {
         prompt.append("- Minimum profit margin must remain: ").append(String.format("%.1f%%", minProfitMargin * 100)).append("\n\n");
         
         prompt.append("TASK:\n");
+        if (behaviorSignals == null || behaviorSignals.isEmpty()) {
+            prompt.append("Since the user is directly requesting a discount for this specific product, ");
+            prompt.append("you should offer a discount (shouldOffer: true) to encourage purchase. ");
+            prompt.append("Use the product name in both headline and message. ");
+        }
         prompt.append("Based on the behavior signals, determine if a discount should be offered and generate:\n");
         prompt.append("1. Discount type: 'percentage', 'flat_amount', or 'free_shipping'\n");
         prompt.append("2. Discount value (numeric, e.g., 15 for 15% or 10 for $10)\n");
-        prompt.append("3. Compelling headline (max 50 characters)\n");
-        prompt.append("4. Personalized message (max 100 characters)\n\n");
+        prompt.append("3. Compelling headline including the product name (max 50 characters)\n");
+        prompt.append("4. Personalized message mentioning the specific product (max 100 characters)\n\n");
         
         prompt.append("Respond in JSON format:\n");
         prompt.append("{\n");
@@ -200,7 +210,7 @@ public class GeminiService {
                   "candidates": [{
                     "content": {
                       "parts": [{
-                        "text": "{\\"shouldOffer\\": true, \\"type\\": \\"percentage\\", \\"value\\": 10, \\"headline\\": \\"Special Offer!\\", \\"message\\": \\"Get 10% off your purchase today!\\", \\"reasoning\\": \\"Default fallback discount\\"}"
+                        "text": "{\\"shouldOffer\\": true, \\"type\\": \\"percentage\\", \\"value\\": 15, \\"headline\\": \\"Special Product Offer!\\", \\"message\\": \\"Get 15% off this amazing product today!\\", \\"reasoning\\": \\"Direct product interest shows purchase intent\\"}"
                       }]
                     }
                   }]
@@ -211,10 +221,10 @@ public class GeminiService {
     private Discount getDefaultDiscount() {
         return Discount.builder()
                 .type("percentage")
-                .value(10.0)
-                .amount("10% off")
-                .headline("Special Offer!")
-                .message("Get 10% off your purchase today!")
+                .value(15.0)
+                .amount("15% off")
+                .headline("Special Product Offer!")
+                .message("Get 15% off this amazing product today!")
                 .build();
     }
 }

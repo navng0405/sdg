@@ -59,11 +59,13 @@ public class ApiController {
     }
     
     @GetMapping("/get-discount")
-    public ResponseEntity<DiscountResponse> getDiscount(@RequestParam String userId) {
-        log.info("Getting discount for user: {}", userId);
+    public ResponseEntity<DiscountResponse> getDiscount(
+            @RequestParam String userId, 
+            @RequestParam(required = false) String productId) {
+        log.info("Getting discount for user: {} and product: {}", userId, productId);
         
         try {
-            Discount discount = discountService.generatePersonalizedDiscount(userId).get();
+            Discount discount = discountService.generatePersonalizedDiscount(userId, productId).get();
             
             if (discount == null) {
                 return ResponseEntity.ok(DiscountResponse.noOffer("No specific offer for this user at this time."));

@@ -32,10 +32,43 @@ public class DiscountService {
     private final Map<String, Discount> activeDiscounts = new ConcurrentHashMap<>();
     
     public CompletableFuture<Discount> generatePersonalizedDiscount(String userId) {
-        log.debug("Generating personalized discount for user: {}", userId);
+        return generatePersonalizedDiscount(userId, null);
+    }
+    
+    public CompletableFuture<Discount> generatePersonalizedDiscount(String userId, String productId) {
+        log.debug("Generating personalized discount for user: {} and product: {}", userId, productId);
         
         return algoliaService.getUserBehaviorHistory(userId, 20)
                 .thenCompose(behaviorHistory -> {
+                    // If a specific product is requested, use it
+                    if (productId != null && !productId.trim().isEmpty()) {
+                        return algoliaService.getProduct(productId)
+                                .thenCompose(product -> {
+                                    if (product == null) {
+                                        log.warn("Product not found: {}", productId);
+                                        return CompletableFuture.completedFuture(null);
+                                    }
+                                    
+                                    // Generate discount for the specific product
+                                    return geminiService.generateDiscountSuggestion(userId, behaviorHistory, product)
+                                            .thenApply(discount -> {
+                                                if (discount != null) {
+                                                    // Generate unique discount code
+                                                    String discountCode = generateUniqueDiscountCode(userId, discount);
+                                                    discount.setCode(discountCode);
+                                                    
+                                                    // Store active discount
+                                                    storeActiveDiscount(discount);
+                                                    
+                                                    log.info("Generated personalized discount: {} for user: {} and product: {}", 
+                                                            discountCode, userId, productId);
+                                                }
+                                                return discount;
+                                            });
+                                });
+                    }
+                    
+                    // Original logic for behavior-based discount generation
                     if (behaviorHistory.isEmpty()) {
                         log.info("No behavior history found for user: {}", userId);
                         return CompletableFuture.completedFuture(null);

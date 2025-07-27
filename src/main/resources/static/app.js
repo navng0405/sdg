@@ -132,10 +132,10 @@ class SmartDiscountGenerator {
                     description: product.description,
                     price: parseFloat(product.price),
                     category: product.category,
-                    imageUrl: product.imageUrl || `https://via.placeholder.com/400x300/4A90E2/FFFFFF?text=${encodeURIComponent(product.name)}`,
-                    rating: product.rating || 4.5,
-                    numberOfReviews: product.numberOfReviews || 100,
-                    profitMargin: product.profitMargin || 0.3
+                    imageUrl: product.image_url || `https://via.placeholder.com/400x300/4A90E2/FFFFFF?text=${encodeURIComponent(product.name)}`,
+                    rating: product.average_rating || 4.5,
+                    numberOfReviews: product.number_of_reviews || 100,
+                    profitMargin: product.profit_margin || 0.3
                 }));
                 
                 console.log(`Loaded ${this.allProducts.length} products`);
@@ -163,7 +163,7 @@ class SmartDiscountGenerator {
         // Update product image
         const imageElement = document.getElementById('product-image');
         if (imageElement) {
-            imageElement.src = this.currentProduct.imageUrl;
+            imageElement.src = this.currentProduct.image_url;
             imageElement.alt = this.currentProduct.name;
         }
         
