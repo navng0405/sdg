@@ -23,8 +23,6 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 public class GeminiOrchestratorService {
     
-    private static final Logger log = LoggerFactory.getLogger(GeminiOrchestratorService.class);
-    
     private final WebClient.Builder webClientBuilder;
     private final ObjectMapper objectMapper;
     private final McpToolService mcpToolService;
@@ -48,7 +46,10 @@ public class GeminiOrchestratorService {
         log.info("Starting MCP-centric discount generation for user: {}", userId);
         
         if (webClient == null) {
-            webClient = webClientBuilder.baseUrl(baseUrl).build();
+            webClient = webClientBuilder
+                    .baseUrl(baseUrl)
+                    .defaultHeader("Content-Type","application/json")
+                    .build();
         }
         
         try {
@@ -183,7 +184,7 @@ public class GeminiOrchestratorService {
         
         return webClient
                 .post()
-                .uri("/models/{model}:generateContent?key={apiKey}", model, geminiApiKey)
+                .uri("/v1beta/models/gemini-pro:generateContent?key=" + geminiApiKey)
                 .header("Content-Type", "application/json")
                 .bodyValue(requestBody)
                 .retrieve()
