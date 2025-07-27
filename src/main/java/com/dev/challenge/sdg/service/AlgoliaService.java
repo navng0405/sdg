@@ -16,6 +16,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.http.MediaType;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -136,9 +137,9 @@ public class AlgoliaService {
                 Object timestampObj = hitMap.get("timestamp");
                 if (timestampObj instanceof String) {
                     try {
-                        LocalDateTime timestamp = LocalDateTime.parse((String) timestampObj, 
+                        LocalDateTime timestamp = LocalDateTime.parse((String) timestampObj,
                                 java.time.format.DateTimeFormatter.ISO_DATE_TIME);
-                        builder.timestamp(timestamp);
+                        builder.timestamp(Instant.from(timestamp));
                     } catch (Exception e) {
                         log.debug("Failed to parse timestamp, using current time: {}", e.getMessage());
                         builder.timestamp(Instant.now());

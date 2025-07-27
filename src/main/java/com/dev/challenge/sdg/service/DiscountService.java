@@ -21,8 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 @RequiredArgsConstructor
 public class DiscountService {
-    
-    private static final Logger log = LoggerFactory.getLogger(DiscountService.class);
+
     private final AlgoliaService algoliaService;
     private final GeminiService geminiService;
     
