@@ -3,49 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Dashboard - Smart Discount Generator</title>
+    <title>AI Analytics Dashboard - Smart Discount Generator</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="dashboard.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <!-- Navigation Header -->
+    <!-- Futuristic Navigation Header -->
     <nav class="navbar">
-        <div class="nav-container">
+        <div class="nav-container glass-container">
             <div class="nav-brand">
-                <i class="fas fa-shopping-cart"></i>
+                <i class="fas fa-robot"></i>
                 <span>Smart Discount Generator</span>
+                <div class="ai-indicator">
+                    <div class="ai-pulse"></div>
+                    <span>AI ANALYTICS</span>
+                </div>
             </div>
             <div class="nav-links">
                 <a href="catalog.html" class="nav-link">
-                    <i class="fas fa-th-large"></i> Catalog
+                    <i class="fas fa-th-large"></i> 
+                    <span>Catalog</span>
                 </a>
                 <a href="cart.html" class="nav-link">
-                    <i class="fas fa-shopping-cart"></i> Cart
+                    <i class="fas fa-shopping-cart"></i> 
+                    <span>Cart</span>
                     <span id="cart-count" class="cart-count">0</span>
                 </a>
                 <a href="dashboard.html" class="nav-link active">
-                    <i class="fas fa-user"></i> Dashboard
+                    <i class="fas fa-user"></i> 
+                    <span>Dashboard</span>
                 </a>
                 <a href="admin.html" class="nav-link">
-                    <i class="fas fa-chart-line"></i> Analytics
+                    <i class="fas fa-chart-line"></i> 
+                    <span>Admin</span>
                 </a>
             </div>
         </div>
     </nav>
 
-    <!-- Dashboard Container -->
+    <!-- AI-Powered Dashboard Container -->
     <div class="dashboard-container">
-        <!-- Dashboard Header -->
-        <div class="dashboard-header">
+        <!-- Revolutionary Dashboard Header -->
+        <div class="dashboard-header glass-container">
             <div class="user-welcome">
                 <div class="user-avatar">
                     <i class="fas fa-user"></i>
+                    <div class="avatar-status"></div>
                 </div>
                 <div class="welcome-text">
                     <h1>Welcome back, <span id="user-name">John Doe</span>!</h1>
-                    <p>Here's your personalized shopping insights powered by AI</p>
+                    <p>Your AI-powered shopping insights are ready</p>
+                    <div class="user-level">
+                        <span class="level-badge">PREMIUM SHOPPER</span>
+                        <div class="xp-bar">
+                            <div class="xp-fill" style="width: 75%"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="user-stats">
@@ -56,6 +72,7 @@
                     <div class="stat-info">
                         <span class="stat-value" id="total-orders">12</span>
                         <span class="stat-label">Total Orders</span>
+                        <span class="stat-trend positive">+23%</span>
                     </div>
                 </div>
                 <div class="stat-card">
@@ -65,6 +82,7 @@
                     <div class="stat-info">
                         <span class="stat-value" id="total-saved">$248</span>
                         <span class="stat-label">Total Saved</span>
+                        <span class="stat-trend positive">+15%</span>
                     </div>
                 </div>
                 <div class="stat-card">
@@ -74,6 +92,17 @@
                     <div class="stat-info">
                         <span class="stat-value" id="avg-discount">18%</span>
                         <span class="stat-label">Avg Discount</span>
+                        <span class="stat-trend positive">+5%</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="ai-score">92</span>
+                        <span class="stat-label">AI Score</span>
+                        <span class="stat-trend positive">+8%</span>
                     </div>
                 </div>
             </div>
