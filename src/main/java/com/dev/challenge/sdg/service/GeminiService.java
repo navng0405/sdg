@@ -385,4 +385,170 @@ public class GeminiService {
         
         return cleaned;
     }
+    
+    /**
+     * Analyze profit protection using Gemini AI
+     * @param analysisContext Map containing product, discount, and user context
+     * @return Map<String, Object> with analysis results (e.g., veto, maxAllowedDiscount, reasoning)
+     */
+    public CompletableFuture<Map<String, Object>> analyzeProfitProtection_1(Map<String, Object> analysisContext) {
+        String prompt = buildProfitProtectionPrompt(analysisContext);
+        WebClient webClient = webClientBuilder.build();
+        Map<String, Object> requestBody = Map.of(
+                "contents", List.of(
+                        Map.of("parts", List.of(Map.of("text", prompt)))
+                )
+        );
+        return webClient.post()
+                .uri(baseUrl + "?key=" + apiKey)
+                .header("Content-Type", "application/json")
+                .bodyValue(requestBody)
+                .retrieve()
+                .bodyToMono(String.class)
+                .map(this::parseProfitProtectionResponse)
+                .toFuture();
+    }
+
+    private String buildProfitProtectionPrompt(Map<String, Object> ctx) {
+        StringBuilder prompt = new StringBuilder();
+
+        prompt.append("You are an AI specialized in e-commerce profit protection. Your sole function is to evaluate discount requests against predefined profit margin thresholds and provide a decision in a strict JSON format.\n\n");
+
+        prompt.append("---PRODUCT DETAILS---\n");
+        prompt.append("Product Name: ").append(ctx.getOrDefault("name", ctx.getOrDefault("productName", "N/A"))).append("\n");
+        prompt.append("Price: $").append(ctx.getOrDefault("price", "N/A")).append("\n");
+        prompt.append("Cost Basis: $").append(ctx.getOrDefault("cost_basis", "N/A")).append("\n");
+        prompt.append("Current Profit Margin: ").append(ctx.getOrDefault("profit_margin", "N/A")).append(" (calculated as (price - cost_basis) / price)\n\n");
+
+        prompt.append("---REQUESTED DISCOUNT---\n");
+        prompt.append("Discount Type: ").append(ctx.getOrDefault("discountType", "percentage")).append("\n");
+        prompt.append("Discount Value: ").append(ctx.getOrDefault("requested_discount", "N/A")).append("%\n\n");
+
+        prompt.append("---USER CONTEXT---\n");
+        prompt.append("User ID: ").append(ctx.getOrDefault("userId", "N/A")).append("\n");
+        prompt.append("User Behavior: ").append(ctx.getOrDefault("behavior", "N/A")).append("\n\n");
+
+        prompt.append("---PROFIT PROTECTION CONSTRAINTS---\n");
+        prompt.append("Minimum Required Profit Margin: ").append(minProfitMargin * 100).append("%\n");
+        prompt.append("Maximum Allowed Discount (absolute cap): ").append(maxDiscountPercentage).append("%\n\n");
+
+        prompt.append("---INSTRUCTIONS---\n");
+        prompt.append("1. Calculate the profit margin if the 'Requested Discount' is applied.\n");
+        prompt.append("2. Determine if the calculated profit margin falls below the 'Minimum Required Profit Margin'.\n");
+        prompt.append("3. Determine if the 'Requested Discount' exceeds the 'Maximum Allowed Discount (absolute cap)'.\n");
+        prompt.append("4. If the 'Requested Discount' leads to a profit margin below the minimum OR exceeds the absolute maximum allowed discount, then 'veto' the request.\n");
+        prompt.append("5. If vetoed, calculate the highest possible 'maxAllowedDiscount' that still respects the 'Minimum Required Profit Margin' and the 'Maximum Allowed Discount (absolute cap)', whichever is lower.\n");
+        prompt.append("6. If not vetoed, 'maxAllowedDiscount' should be equal to the 'Requested Discount'.\n");
+        prompt.append("7. Your response MUST be a JSON object and contain ONLY the JSON. No additional text, explanations, or conversational elements are allowed.\n\n");
+
+        prompt.append("---OUTPUT FORMAT---\n");
+        prompt.append("{\n");
+        prompt.append("  \"veto\": true/false,\n");
+        prompt.append("  \"maxAllowedDiscount\": number, // The highest discount that keeps profit margin above threshold and within absolute cap.\n");
+        prompt.append("  \"reasoning\": \"brief explanation of the decision, e.g., 'Discount too high, reduces profit margin to X%', or 'Discount approved, profit margin remains Y%'\"\n");
+        prompt.append("}\n");
+
+        return prompt.toString();
+    }
+
+    private Map<String, Object> parseProfitProtectionResponse(String response) {
+        try {
+            JsonNode rootNode = objectMapper.readTree(response);
+            JsonNode candidatesNode = rootNode.path("candidates");
+            if (candidatesNode.isArray() && candidatesNode.size() > 0) {
+                JsonNode contentNode = candidatesNode.get(0).path("content").path("parts");
+                if (contentNode.isArray() && contentNode.size() > 0) {
+                    String textContent = contentNode.get(0).path("text").asText();
+                    int jsonStart = textContent.indexOf("{");
+                    int jsonEnd = textContent.lastIndexOf("}") + 1;
+                    if (jsonStart >= 0 && jsonEnd > jsonStart) {
+                        String jsonContent = textContent.substring(jsonStart, jsonEnd);
+                        JsonNode analysisNode = objectMapper.readTree(jsonContent);
+                        boolean veto = analysisNode.path("veto").asBoolean(false);
+                        double maxAllowedDiscount = analysisNode.path("maxAllowedDiscount").asDouble(maxDiscountPercentage);
+                        String reasoning = analysisNode.path("reasoning").asText("");
+                        return Map.of(
+                                "veto", veto,
+                                "maxAllowedDiscount", maxAllowedDiscount,
+                                "reasoning", reasoning
+                        );
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error parsing Gemini profit protection response", e);
+        }
+        // Default: no veto, max allowed discount
+        return Map.of(
+                "veto", false,
+                "maxAllowedDiscount", maxDiscountPercentage,
+                "reasoning", "Default: No veto, max allowed discount applied."
+        );
+    }
+    
+    /**
+     * Synchronous profit protection analysis using Gemini AI
+     * @param analysisContext Map containing product, discount, and user context
+     * @return Map<String, Object> with analysis results (veto, maxAllowedDiscount, reasoning)
+     */
+    public Map<String, Object> analyzeProfitProtection(Map<String, Object> analysisContext) {
+        try {
+            return analyzeProfitProtectionSync(analysisContext);
+        } catch (Exception e) {
+            log.error("Error in profit protection analysis", e);
+            // Default: no veto, max allowed discount
+            return Map.of(
+                "veto", false,
+                "maxAllowedDiscount", maxDiscountPercentage,
+                "reasoning", "Default: No veto, max allowed discount applied."
+            );
+        }
+    }
+
+    /**
+     * Internal: Synchronous profit protection analysis using Gemini AI
+     */
+    private Map<String, Object> analyzeProfitProtectionSync(Map<String, Object> analysisContext) {
+        try {
+            return analyzeProfitProtectionAsync(analysisContext).get();
+        } catch (Exception e) {
+            log.error("Error in synchronous profit protection analysis", e);
+            // Default: no veto, max allowed discount
+            return Map.of(
+                "veto", false,
+                "maxAllowedDiscount", maxDiscountPercentage,
+                "reasoning", "Default: No veto, max allowed discount applied."
+            );
+        }
+    }
+
+    /**
+     * Internal: Asynchronous profit protection analysis using Gemini AI
+     */
+    private CompletableFuture<Map<String, Object>> analyzeProfitProtectionAsync(Map<String, Object> analysisContext) {
+        String prompt = buildProfitProtectionPrompt(analysisContext);
+        WebClient webClient = webClientBuilder.build();
+        Map<String, Object> requestBody = Map.of(
+                "contents", List.of(
+                        Map.of("parts", List.of(Map.of("text", prompt)))
+                )
+        );
+        return webClient.post()
+                .uri(baseUrl + "?key=" + apiKey)
+                .header("Content-Type", "application/json")
+                .bodyValue(requestBody)
+                .retrieve()
+                .bodyToMono(String.class)
+                .map(this::parseProfitProtectionResponse)
+                .onErrorResume(error -> {
+                    log.error("Error in MCP profit protection async analysis", error);
+                    // Return default: no veto, max allowed discount
+                    return Mono.just(Map.of(
+                        "veto", false,
+                        "maxAllowedDiscount", maxDiscountPercentage,
+                        "reasoning", "Default: No veto, max allowed discount applied."
+                    ));
+                })
+                .toFuture();
+    }
 }

@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MCP-Powered Smart Discount Generator</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -281,179 +283,181 @@
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <header class="header">
-            <div class="mcp-powered">
+<body class="bg-light">
+    <div class="container py-4">
+        <header class="mb-4">
+            <div class="mcp-powered mb-2">
                 <i class="fas fa-robot"></i>
                 MCP-Powered by Algolia + Claude AI
             </div>
-            <h1>🤖 Intelligent Discount Generator</h1>
-            <p class="subtitle">AI-Enhanced Profit Protection with Algolia MCP Server</p>
+            <h1 class="display-5 fw-bold text-primary">🤖 Intelligent Discount Generator</h1>
+            <p class="lead">AI-Enhanced Profit Protection with Algolia MCP Server</p>
         </header>
 
-        <div class="main-content">
+        <div class="row g-4">
             <!-- MCP Status Panel -->
-            <div class="status-panel">
-                <h3><i class="fas fa-brain"></i> AI System Status</h3>
-                <div class="status-grid">
-                    <div class="status-item">
-                        <span class="status-label">MCP Server</span>
-                        <span class="status-value" id="mcp-status">
-                            <span class="mcp-badge">ACTIVE</span>
-                        </span>
-                    </div>
-                    <div class="status-item">
-                        <span class="status-label">AI Analysis</span>
-                        <span class="status-value" id="ai-status">
-                            <span class="mcp-badge">READY</span>
-                        </span>
-                    </div>
-                    <div class="status-item">
-                        <span class="status-label">Confidence</span>
-                        <span class="status-value" id="confidence-status">94%</span>
+            <div class="col-md-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-brain"></i> AI System Status</h5>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                MCP Server
+                                <span class="badge bg-success" id="mcp-status">ACTIVE</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                AI Analysis
+                                <span class="badge bg-info" id="ai-status">READY</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Confidence
+                                <span class="badge bg-warning text-dark" id="confidence-status">94%</span>
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </div>
 
             <!-- Product Selection -->
-            <div class="product-section">
-                <h3><i class="fas fa-box"></i> Product Selection</h3>
-                
-                <!-- Product Search -->
-                <div class="input-group">
-                    <label for="product-search">Search Products:</label>
-                    <div class="search-container">
-                        <input type="text" id="product-search" placeholder="Search products..." class="search-input">
-                        <button id="search-products" class="search-button">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Product Grid -->
-                <div class="product-grid" id="product-grid">
-                    <!-- Products will be loaded here -->
-                </div>
-                
-                <!-- Selected Product Display -->
-                <div class="selected-product" id="selected-product" style="display: none;">
-                    <h4><i class="fas fa-check-circle"></i> Selected Product:</h4>
-                    <div class="product-card" id="current-product">
-                        <div class="product-image">
-                            <img src="" alt="Product" id="product-image">
+            <div class="col-md-8">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-box"></i> Product Selection</h5>
+                        <div class="mb-3">
+                            <label for="product-search" class="form-label">Search Products:</label>
+                            <div class="input-group">
+                                <input type="text" id="product-search" class="form-control" placeholder="Search products...">
+                                <button id="search-products" class="btn btn-primary">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
                         </div>
-                        <div class="product-info">
-                            <h4 id="product-name">Select a product</h4>
-                            <p class="product-price" id="product-price">$0.00</p>
-                            <div class="product-badges">
-                                <span class="badge category" id="product-category">Category</span>
-                                <span class="badge stock" id="stock-status">Stock Status</span>
-                                <span class="badge profit-margin" id="profit-margin">Margin: 0%</span>
+                        <div class="row" id="product-grid">
+                            <!-- Products will be loaded here -->
+                        </div>
+                        <div class="selected-product card mt-3" id="selected-product" style="display: none;">
+                            <div class="card-body d-flex align-items-center">
+                                <img src="" alt="Product" id="product-image" class="img-thumbnail me-3" style="width:100px;">
+                                <div>
+                                    <h5 id="product-name">Select a product</h5>
+                                    <p class="product-price mb-1" id="product-price">$0.00</p>
+                                    <span class="badge bg-secondary me-1" id="product-category">Category</span>
+                                    <span class="badge bg-success me-1" id="stock-status">Stock Status</span>
+                                    <span class="badge bg-warning text-dark" id="profit-margin">Margin: 0%</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- MCP-Enhanced Discount Generation -->
-            <div class="discount-section">
-                <h3><i class="fas fa-magic"></i> AI-Powered Discount Analysis</h3>
-                
-                <div class="input-group">
-                    <label for="user-id">User ID:</label>
-                    <input type="text" id="user-id" value="user-001" placeholder="Enter user ID">
-                </div>
-                
-                <div class="input-group">
-                    <label for="requested-discount">Requested Discount (%):</label>
-                    <input type="number" id="requested-discount" value="15" min="1" max="50" step="0.5">
-                </div>
-                
-                <div class="input-group">
-                    <label for="user-intent">User Intent:</label>
-                    <select id="user-intent">
-                        <option value="purchase_consideration">Purchase Consideration</option>
-                        <option value="price_comparison">Price Comparison</option>
-                        <option value="cart_abandonment">Cart Abandonment</option>
-                        <option value="loyalty_reward">Loyalty Reward</option>
-                    </select>
-                </div>
-                
-                <button class="cta-button" id="generate-intelligent-discount">
-                    <i class="fas fa-brain"></i>
-                    Generate AI-Optimized Discount
-                </button>
-            </div>
-
-            <!-- AI Analysis Results -->
-            <div id="ai-analysis-container" style="display: none;">
-                <div class="ai-analysis-card">
-                    <h4><i class="fas fa-robot"></i> AI Analysis Results</h4>
-                    <p id="ai-reasoning">Analyzing market conditions and user behavior...</p>
-                    
-                    <div class="confidence-score">
-                        <span>Confidence Score:</span>
-                        <div class="confidence-bar">
-                            <div class="confidence-fill" id="confidence-fill" style="width: 0%"></div>
+                <!-- MCP-Enhanced Discount Generation -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-magic"></i> AI-Powered Discount Analysis</h5>
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-4">
+                                <label for="user-id" class="form-label">User ID:</label>
+                                <input type="text" id="user-id" class="form-control" value="user-001" placeholder="Enter user ID">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="requested-discount" class="form-label">Requested Discount (%):</label>
+                                <input type="number" id="requested-discount" class="form-control" value="15" min="1" max="50" step="0.5">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="user-intent" class="form-label">User Intent:</label>
+                                <select id="user-intent" class="form-select">
+                                    <option value="purchase_consideration">Purchase Consideration</option>
+                                    <option value="price_comparison">Price Comparison</option>
+                                    <option value="cart_abandonment">Cart Abandonment</option>
+                                    <option value="loyalty_reward">Loyalty Reward</option>
+                                </select>
+                            </div>
                         </div>
-                        <span id="confidence-percentage">0%</span>
-                    </div>
-                    
-                    <div class="mcp-insights">
-                        <h5><i class="fas fa-lightbulb"></i> Market Insights</h5>
-                        <div id="market-insights"></div>
-                    </div>
-                    
-                    <div class="ai-recommendations">
-                        <h5><i class="fas fa-suggestions"></i> AI Recommendations</h5>
-                        <div id="ai-recommendations"></div>
+                        <button class="btn btn-success w-100" id="generate-intelligent-discount">
+                            <i class="fas fa-brain"></i>
+                            Generate AI-Optimized Discount
+                        </button>
                     </div>
                 </div>
-            </div>
 
-            <!-- Discount Banner -->
-            <div id="discount-banner" class="discount-banner" style="display: none;">
-                <div class="discount-content">
-                    <div class="discount-header">
-                        <h3 id="discount-headline">Special Offer!</h3>
-                        <span class="mcp-badge">MCP-ENHANCED</span>
-                    </div>
-                    <p id="discount-message">Your personalized discount is ready!</p>
-                    <div class="discount-details">
-                        <span class="discount-amount" id="discount-amount">15% OFF</span>
-                        <span class="discount-code">Code: <span id="discount-code">SMART15</span></span>
-                    </div>
-                    <div class="countdown-timer">
-                        <i class="fas fa-clock"></i>
-                        <span id="countdown">30:00</span>
+                <!-- AI Analysis Results -->
+                <div id="ai-analysis-container" style="display: none;">
+                    <div class="ai-analysis-card card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="fas fa-robot"></i> AI Analysis Results</h5>
+                            <p id="ai-reasoning">Analyzing market conditions and user behavior...</p>
+                            <div class="confidence-score d-flex align-items-center mb-2">
+                                <span>Confidence Score:</span>
+                                <div class="confidence-bar flex-grow-1 mx-2">
+                                    <div class="confidence-fill" id="confidence-fill" style="width: 0%"></div>
+                                </div>
+                                <span id="confidence-percentage">0%</span>
+                            </div>
+                            <div class="mcp-insights bg-light p-2 rounded mb-2">
+                                <h6><i class="fas fa-lightbulb"></i> Market Insights</h6>
+                                <div id="market-insights"></div>
+                            </div>
+                            <div class="ai-recommendations bg-info bg-opacity-10 p-2 rounded">
+                                <h6><i class="fas fa-suggestions"></i> AI Recommendations</h6>
+                                <div id="ai-recommendations"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- MCP Analytics Dashboard -->
-            <div class="analytics-section">
-                <h3><i class="fas fa-chart-line"></i> MCP Intelligence Dashboard</h3>
-                <div class="analytics-grid">
-                    <div class="analytics-card">
-                        <h4>AI Analyses</h4>
-                        <div class="metric-value" id="total-analyses">156</div>
-                        <div class="metric-label">Total MCP Analyses</div>
+                <!-- Discount Banner -->
+                <div id="discount-banner" class="discount-banner card text-center" style="display: none;">
+                    <div class="card-body">
+                        <div class="discount-header d-flex justify-content-between align-items-center">
+                            <h3 id="discount-headline" class="mb-0">Special Offer!</h3>
+                            <span class="mcp-badge">MCP-ENHANCED</span>
+                        </div>
+                        <p id="discount-message">Your personalized discount is ready!</p>
+                        <div class="discount-details mb-2">
+                            <span class="discount-amount h4" id="discount-amount">15% OFF</span>
+                            <span class="discount-code ms-2">Code: <span id="discount-code">SMART15</span></span>
+                        </div>
+                        <div class="countdown-timer">
+                            <i class="fas fa-clock"></i>
+                            <span id="countdown">30:00</span>
+                        </div>
                     </div>
-                    <div class="analytics-card">
-                        <h4>Optimizations</h4>
-                        <div class="metric-value" id="optimizations">43</div>
-                        <div class="metric-label">AI-Optimized Discounts</div>
-                    </div>
-                    <div class="analytics-card">
-                        <h4>Protected Revenue</h4>
-                        <div class="metric-value" id="protected-revenue">$12.8K</div>
-                        <div class="metric-label">Profit Protected</div>
-                    </div>
-                    <div class="analytics-card">
-                        <h4>Avg Confidence</h4>
-                        <div class="metric-value" id="avg-confidence">84.7%</div>
-                        <div class="metric-label">AI Confidence Score</div>
+                </div>
+
+                <!-- MCP Analytics Dashboard -->
+                <div class="analytics-section card shadow-sm mt-4">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-chart-line"></i> MCP Intelligence Dashboard</h5>
+                        <div class="row text-center">
+                            <div class="col-md-3">
+                                <div class="analytics-card p-2">
+                                    <h6>AI Analyses</h6>
+                                    <div class="metric-value h4" id="total-analyses">156</div>
+                                    <div class="metric-label">Total MCP Analyses</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="analytics-card p-2">
+                                    <h6>Optimizations</h6>
+                                    <div class="metric-value h4" id="optimizations">43</div>
+                                    <div class="metric-label">AI-Optimized Discounts</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="analytics-card p-2">
+                                    <h6>Protected Revenue</h6>
+                                    <div class="metric-value h4" id="protected-revenue">$12.8K</div>
+                                    <div class="metric-label">Profit Protected</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="analytics-card p-2">
+                                    <h6>Avg Confidence</h6>
+                                    <div class="metric-value h4" id="avg-confidence">84.7%</div>
+                                    <div class="metric-label">AI Confidence Score</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -490,6 +494,7 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="mcp-enhanced-app.js"></script>
 </body>
 </html>

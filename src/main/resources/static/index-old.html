@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Discount Generator - AI-Powered E-commerce Revolution</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+</head>
+<body>
+    <div class="container">
+        <!-- Futuristic Header -->
+        <header class="header">
+            <div class="glass-container">
+                <h1><i class="fas fa-robot"></i> Smart Discount Generator</h1>
+                <p class="subtitle">AI-Powered Real-Time Discount Engine with Advanced Behavioral Analytics</p>
+                <div class="ai-badge">
+                    <div class="ai-icon"></div>
+                    <span>Powered by Gemini 2.0 Flash AI</span>
+                </div>
+                
+                <!-- Revolutionary Navigation -->
+                <nav class="demo-nav">
+                    <a href="index.html" class="nav-link active">
+                        <i class="fas fa-home"></i> 
+                        <span>AI Demo Hub</span>
+                    </a>
+                    <a href="catalog.html" class="nav-link">
+                        <i class="fas fa-th-large"></i> 
+                        <span>Smart Catalog</span>
+                    </a>
+                    <a href="catalog-instantsearch.html" class="nav-link featured">
+                        <i class="fas fa-search"></i> 
+                        <span>InstantSearch</span>
+                        <span class="badge">Algolia UI</span>
+                    </a>
+                    <a href="ai-insights.html" class="nav-link featured">
+                        <i class="fas fa-brain"></i> 
+                        <span>AI Insights</span>
+                        <span class="badge">MCP Showcase</span>
+                    </a>
+                    <a href="cart.html" class="nav-link">
+                        <i class="fas fa-shopping-cart"></i> 
+                        <span>Smart Cart</span>
+                    </a>
+                    <a href="dashboard.html" class="nav-link">
+                        <i class="fas fa-chart-line"></i> 
+                        <span>User Analytics</span>
+                    </a>
+                    <a href="admin.html" class="nav-link">
+                        <i class="fas fa-cog"></i> 
+                        <span>Admin Portal</span>
+                    </a>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Discount Offer Banner (Initially Hidden) -->
+        <div id="discount-banner" class="discount-banner hidden">
+            <div class="discount-content">
+                <div class="discount-icon">🎉</div>
+                <div class="discount-text">
+                    <h3 id="discount-headline">Special Offer!</h3>
+                    <p id="discount-message">Limited time discount just for you!</p>
+                    <div class="discount-reasoning">
+                        <i class="fas fa-info-circle"></i>
+                        <span id="discount-reasoning">Why are you getting this discount?</span>
+                    </div>
+                    <div class="discount-details">
+                        <span id="discount-amount" class="discount-amount">15% OFF</span>
+                        <span id="discount-code" class="discount-code">Code: SAVE15-ABC</span>
+                    </div>
+                </div>
+                <div class="discount-timer">
+                    <i class="fas fa-clock"></i>
+                    <span id="countdown-timer">29:59</span>
+                </div>
+                <button id="claim-discount-btn" class="claim-btn">
+                    <i class="fas fa-gift"></i> Claim Now
+                </button>
+            </div>
+            <button id="close-discount-btn" class="close-btn">&times;</button>
+        </div>
+
+        <!-- Revolutionary Main Content -->
+        <div class="main-content">
+            <!-- AI-Enhanced Product Display -->
+            <div class="product-section glass-container">
+                <div class="product-image">
+                    <img id="product-image" src="https://images.unsplash.com/photo-1484704849700-f032a568e944?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Product Image">
+                    <div class="ai-recommend-badge">AI RECOMMENDED</div>
+                </div>
+                <div class="product-info">
+                    <h2 id="product-name">Wireless Bluetooth Headphones</h2>
+                    <p id="product-description">Premium noise-cancelling wireless headphones with 30-hour battery life and superior sound quality.</p>
+                    
+                    <div class="product-rating">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </div>
+                        <span id="product-rating">4.5</span>
+                        <span id="product-reviews">(1,250 reviews)</span>
+                    </div>
+                    
+                    <div class="product-price">
+                        <span id="product-price" class="current-price">$199.99</span>
+                        <span class="original-price" id="original-price" style="display: none;">$249.99</span>
+                        <span class="discount-percentage" style="display: none;">20% OFF</span>
+                    </div>
+                    
+                    <div class="btn-group">
+                        <button id="add-to-cart-btn" class="btn btn-primary">
+                            <i class="fas fa-shopping-cart"></i> Add to Cart
+                        </button>
+                        <button id="buy-now-btn" class="btn btn-secondary">
+                            <i class="fas fa-bolt"></i> Buy Now
+                        </button>
+                        <button id="get-discount-btn" class="btn btn-discount">
+                            <i class="fas fa-magic"></i> Get AI Discount
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Behavior Simulation Panel -->
+            <div class="behavior-simulator glass-container">
+                <h3><i class="fas fa-brain"></i> AI Behavior Analysis Engine</h3>
+                <p class="panel-description">Simulate real user behaviors to trigger intelligent discount offers powered by Gemini AI</p>
+                
+                <div class="user-info">
+                    <label for="user-id">User Profile:</label>
+                    <input type="text" id="user-id" value="user-001" placeholder="Enter user ID">
+                </div>
+
+                <div class="simulation-buttons">
+                    <button id="simulate-cart-abandon" class="sim-btn" data-event="cart_abandon">
+                        <i class="fas fa-shopping-cart"></i>
+                        <div>
+                            <strong>Cart Abandonment</strong>
+                            <small>Add to cart then navigate away</small>
+                        </div>
+                    </button>
+                    
+                    <button id="simulate-multiple-views" class="sim-btn" data-event="multiple_product_views">
+                        <i class="fas fa-eye"></i>
+                        <div>
+                            <strong>Multiple Product Views</strong>
+                            <small>Browse through several products</small>
+                        </div>
+                    </button>
+                    
+                    <button id="simulate-price-hover" class="sim-btn" data-event="price_hover">
+                        <i class="fas fa-mouse-pointer"></i>
+                        <div>
+                            <strong>Price Hesitation</strong>
+                            <small>Hover over price multiple times</small>
+                        </div>
+                    </button>
+                    
+                    <button id="simulate-no-results" class="sim-btn" data-event="no_results_search">
+                        <i class="fas fa-search"></i>
+                        <div>
+                            <strong>Zero Results Search</strong>
+                            <small>Search for non-existent items</small>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- AI-Powered Analytics Dashboard -->
+            <div class="analytics-dashboard glass-container">
+                <div class="dashboard-grid">
+                    <!-- User Browse History -->
+                    <div class="history-panel">
+                        <h4><i class="fas fa-history"></i> User Browse History</h4>
+                        <div id="browse-history-content" class="history-timeline">
+                            <div class="history-item">
+                                <i class="fas fa-search"></i>
+                                <div class="history-content">
+                                    <span>Searched for: "wireless headphones"</span>
+                                    <time>2 minutes ago</time>
+                                </div>
+                            </div>
+                            <div class="history-item">
+                                <i class="fas fa-eye"></i>
+                                <div class="history-content">
+                                    <span>Viewed: Smart Watch Series X</span>
+                                    <time>5 minutes ago</time>
+                                </div>
+                            </div>
+                            <div class="history-item">
+                                <i class="fas fa-search"></i>
+                                <div class="history-content">
+                                    <span>Searched for: "bluetooth earbuds"</span>
+                                    <time>8 minutes ago</time>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Status Panel -->
+                    <div class="ai-status">
+                        <div class="ai-status-icon">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="ai-status-text">
+                            <h4>AI System Status</h4>
+                            <p>Gemini 2.0 Flash is actively analyzing user behavior patterns</p>
+                            <div class="status-indicators">
+                                <div class="status-indicator active">
+                                    <i class="fas fa-circle"></i>
+                                    <span>Behavior Analysis</span>
+                                </div>
+                                <div class="status-indicator active">
+                                    <i class="fas fa-circle"></i>
+                                    <span>MCP Tools</span>
+                                </div>
+                                <div class="status-indicator active">
+                                    <i class="fas fa-circle"></i>
+                                    <span>Algolia Data</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer with modern styling -->
+        <footer class="footer glass-container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h5>Smart Discount Generator</h5>
+                    <p>AI-powered e-commerce discount engine built with cutting-edge technology.</p>
+                </div>
+                <div class="footer-section">
+                    <h5>Technology Stack</h5>
+                    <ul>
+                        <li><i class="fab fa-java"></i> Spring Boot</li>
+                        <li><i class="fas fa-robot"></i> Google Gemini 2.0</li>
+                        <li><i class="fas fa-search"></i> Algolia</li>
+                        <li><i class="fas fa-code"></i> Model Context Protocol</li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h5>Demo Features</h5>
+                    <ul>
+                        <li><i class="fas fa-brain"></i> AI Behavior Analysis</li>
+                        <li><i class="fas fa-percentage"></i> Smart Discounts</li>
+                        <li><i class="fas fa-chart-line"></i> Real-time Analytics</li>
+                        <li><i class="fas fa-magic"></i> Personalization</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Smart Discount Generator. Powered by AI Innovation.</p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+                    <span class="status-label">MCP Server:</span>
+                    <span id="mcp-status" class="status-value">Ready</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Algolia:</span>
+                    <span id="algolia-status" class="status-value">Connected</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">AI Engine:</span>
+                    <span id="ai-status" class="status-value">Active</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Active Discounts:</span>
+                    <span id="active-discounts-count" class="status-value">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Generating personalized discount...</p>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="success-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-check-circle"></i> Discount Applied!</h3>
+                <button id="close-modal-btn" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Your discount has been successfully applied to your cart.</p>
+                <div class="savings-info">
+                    <span>You saved: <strong id="savings-amount">$29.99</strong></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="continue-shopping-btn" class="btn btn-primary">Continue Shopping</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

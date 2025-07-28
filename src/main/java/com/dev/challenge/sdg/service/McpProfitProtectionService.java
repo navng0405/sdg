@@ -48,6 +48,9 @@ public class McpProfitProtectionService {
     private WebClient mcpClient;
     
     @Autowired
+    private GeminiService geminiService;
+    
+    @Autowired
     public void initializeMcpClient() {
         this.mcpClient = webClientBuilder
                 .baseUrl(mcpServerUrl)
@@ -70,20 +73,17 @@ public class McpProfitProtectionService {
             double requestedDiscount, 
             String userId,
             Map<String, Object> marketContext) {
-        
         return CompletableFuture.supplyAsync(() -> {
             // Check if MCP is enabled
             if (!mcpEnabled) {
-                log.info("📊 MCP disabled - using enhanced fallback analysis for product: {}", productId);
-                return createEnhancedFallbackResult(productId, requestedDiscount, userId, marketContext);
+                log.error("MCP integration is disabled. Please enable MCP and provide valid credentials for live data.");
+                throw new IllegalStateException("MCP integration is disabled. No fallback/mock data will be returned.");
             }
-            
             try {
                 log.info("🤖 Starting MCP-enhanced profit analysis for product: {}", productId);
                 
                 // Step 1: Use MCP to get enriched product data
                 Map<String, Object> mcpRequest = createMcpProductRequest(productId);
-                
                 var productResponse = mcpClient.post()
                         .uri("/mcp/tools/algolia_search")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -93,10 +93,8 @@ public class McpProfitProtectionService {
                         .timeout(Duration.ofSeconds(timeoutSeconds))
                         .retryWhen(reactor.util.retry.Retry.fixedDelay(retryAttempts, Duration.ofSeconds(1)))
                         .block();
-                
                 // Step 2: Use MCP to get market intelligence
                 Map<String, Object> marketRequest = createMcpMarketAnalysisRequest(productId, marketContext);
-                
                 var marketResponse = mcpClient.post()
                         .uri("/mcp/tools/algolia_search")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -106,10 +104,8 @@ public class McpProfitProtectionService {
                         .timeout(Duration.ofSeconds(timeoutSeconds))
                         .retryWhen(reactor.util.retry.Retry.fixedDelay(retryAttempts, Duration.ofSeconds(1)))
                         .block();
-                
                 // Step 3: Use MCP to analyze historical pricing data
                 Map<String, Object> historicalRequest = createMcpHistoricalAnalysisRequest(productId, userId);
-                
                 var historicalResponse = mcpClient.post()
                         .uri("/mcp/tools/algolia_search")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -119,29 +115,31 @@ public class McpProfitProtectionService {
                         .timeout(Duration.ofSeconds(timeoutSeconds))
                         .retryWhen(reactor.util.retry.Retry.fixedDelay(retryAttempts, Duration.ofSeconds(1)))
                         .block();
-                
-                // Step 4: AI-powered profit margin analysis using Claude through MCP
-                Map<String, Object> aiAnalysisRequest = createAiAnalysisRequest(
-                        productResponse, marketResponse, historicalResponse, requestedDiscount);
-                
-                var aiResponse = mcpClient.post()
-                        .uri("/mcp/ai/analyze")
+                // Step 4: Use MCP to get user events/behavior
+                Map<String, Object> userEventsRequest = createMcpUserEventsRequest(userId);
+                var userEventsResponse = mcpClient.post()
+                        .uri("/mcp/tools/algolia_search")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue(aiAnalysisRequest)
+                        .bodyValue(userEventsRequest)
                         .retrieve()
                         .bodyToMono(Map.class)
                         .timeout(Duration.ofSeconds(timeoutSeconds))
                         .retryWhen(reactor.util.retry.Retry.fixedDelay(retryAttempts, Duration.ofSeconds(1)))
                         .block();
+                // Step 5: AI-powered profit margin analysis using GeminiService directly
+                Map<String, Object> aiAnalysisRequest = createGeminiAnalysisRequest(
+                        productResponse, marketResponse, historicalResponse, userEventsResponse, requestedDiscount);
                 
-                // Process MCP results into intelligent profit protection decision
+                Map<String, Object> aiResponse = geminiService.analyzeProfitProtection(aiAnalysisRequest);
+                
+                // Process results into intelligent profit protection decision
                 return processMcpResults(productId, requestedDiscount, userId, 
                         productResponse, marketResponse, historicalResponse, aiResponse);
                 
             } catch (Exception e) {
                 log.error("❌ MCP profit analysis failed for product: {} - Error: {}", productId, e.getMessage());
                 log.debug("MCP Error Details:", e);
-                return createEnhancedFallbackResult(productId, requestedDiscount, userId, marketContext);
+                throw new RuntimeException("MCP profit analysis failed. No fallback/mock data will be returned.", e);
             }
         });
     }
@@ -212,60 +210,57 @@ public class McpProfitProtectionService {
     }
     
     /**
-     * Creates AI analysis request using Claude through MCP
+     * Creates MCP request for user events/behavior analysis
      */
-    private Map<String, Object> createAiAnalysisRequest(
+    private Map<String, Object> createMcpUserEventsRequest(String userId) {
+        Map<String, Object> request = new HashMap<>();
+        request.put("tool", "algolia_search");
+        Map<String, Object> params = new HashMap<>();
+        params.put("index_name", "user_events");
+        params.put("query", "recent behavior activity");
+        params.put("filters", String.format("user_id:'%s'", userId));
+        params.put("attributes_to_retrieve", List.of("behavior", "event_type", "timestamp"));
+        params.put("hits_per_page", 1);
+        request.put("arguments", params);
+        return request;
+    }
+    
+    /**
+     * Creates Gemini AI analysis request
+     */
+    private Map<String, Object> createGeminiAnalysisRequest(
             Map<String, Object> productData,
             Map<String, Object> marketData, 
             Map<String, Object> historicalData,
+            Map<String, Object> userEventsData,
             double requestedDiscount) {
-        
-        Map<String, Object> request = new HashMap<>();
-        request.put("model", "claude-3-sonnet");
-        request.put("system", """
-                You are an AI pricing strategist expert. Analyze the provided data and determine:
-                1. Optimal discount range for profit protection
-                2. Market positioning impact
-                3. Revenue optimization recommendations
-                4. Risk assessment for the requested discount
-                
-                Consider profit margins, competitive landscape, demand patterns, and customer behavior.
-                Provide specific percentage recommendations with confidence scores.
-                """);
-        
         Map<String, Object> analysisContext = new HashMap<>();
-        analysisContext.put("product_data", productData);
+        // Flatten product details from MCP response
+        if (productData != null && productData.containsKey("hits")) {
+            List<Map<String, Object>> hits = (List<Map<String, Object>>) productData.get("hits");
+            if (hits != null && !hits.isEmpty()) {
+                Map<String, Object> firstHit = hits.get(0);
+                for (Map.Entry<String, Object> entry : firstHit.entrySet()) {
+                    analysisContext.put(entry.getKey(), entry.getValue());
+                }
+            }
+        }
+        // Add behavior from user events MCP response
+        if (userEventsData != null && userEventsData.containsKey("hits")) {
+            List<Map<String, Object>> hits = (List<Map<String, Object>>) userEventsData.get("hits");
+            if (hits != null && !hits.isEmpty()) {
+                Map<String, Object> firstHit = hits.get(0);
+                if (firstHit.containsKey("behavior")) {
+                    analysisContext.put("behavior", firstHit.get("behavior"));
+                }
+            }
+        }
+        // Add market and historical data as nested objects
         analysisContext.put("market_intelligence", marketData);
         analysisContext.put("historical_performance", historicalData);
         analysisContext.put("requested_discount", requestedDiscount);
         analysisContext.put("analysis_timestamp", LocalDateTime.now().toString());
-        
-        request.put("user_message", String.format("""
-                Analyze this discount request:
-                
-                Requested Discount: %.1f%%
-                
-                Product Data: %s
-                
-                Market Data: %s
-                
-                Historical Data: %s
-                
-                Provide a JSON response with:
-                - recommended_discount: number
-                - confidence_score: number (0-1)
-                - risk_level: string (low/medium/high)
-                - reasoning: string
-                - market_impact: string
-                - alternative_strategies: array
-                """, requestedDiscount, 
-                safeJsonString(productData),
-                safeJsonString(marketData),
-                safeJsonString(historicalData)
-        ));
-        
-        request.put("arguments", analysisContext);
-        return request;
+        return analysisContext;
     }
     
     /**
@@ -279,42 +274,45 @@ public class McpProfitProtectionService {
             Map<String, Object> marketData,
             Map<String, Object> historicalData,
             Map<String, Object> aiAnalysis) {
-        
         try {
-            // Extract AI recommendations
-            Map<String, Object> aiResults = (Map<String, Object>) aiAnalysis.get("analysis");
-            double recommendedDiscount = ((Number) aiResults.get("recommended_discount")).doubleValue();
-            double confidenceScore = ((Number) aiResults.get("confidence_score")).doubleValue();
-            String riskLevel = (String) aiResults.get("risk_level");
-            String reasoning = (String) aiResults.get("reasoning");
-            
-            // Extract market insights from AI analysis (preferred) or fallback to market data
-            Map<String, Object> marketInsights;
-            if (aiResults.containsKey("market_insights")) {
-                Object insights = aiResults.get("market_insights");
-                if (insights instanceof List) {
-                    // Convert list of insights to a structured map
-                    List<String> insightsList = (List<String>) insights;
-                    marketInsights = new HashMap<>();
-                    marketInsights.put("insights", insightsList);
-                    marketInsights.put("analysis_type", "ai_enhanced");
-                } else if (insights instanceof Map) {
-                    marketInsights = (Map<String, Object>) insights;
-                } else {
-                    marketInsights = extractMarketInsights(marketData);
-                }
-            } else {
-                marketInsights = extractMarketInsights(marketData);
+            // Use GeminiService.analyzeProfitProtection response directly
+            Map<String, Object> aiResults = aiAnalysis;
+            if (aiResults == null) {
+                log.warn("AI analysis results are missing or null. Returning fallback MCP result.");
+                // Fallback values
+                double recommendedDiscount = requestedDiscount;
+                double confidenceScore = 0.5;
+                String riskLevel = "unknown";
+                String reasoning = "AI analysis unavailable. Fallback result returned.";
+                Map<String, Object> marketInsights = extractMarketInsights(marketData);
+                return McpProfitAnalysisResult.builder()
+                        .productId(productId)
+                        .userId(userId)
+                        .requestedDiscount(requestedDiscount)
+                        .recommendedDiscount(recommendedDiscount)
+                        .finalDiscount(recommendedDiscount)
+                        .approved(true)
+                        .confidenceScore(confidenceScore)
+                        .riskLevel(riskLevel)
+                        .reasoning(reasoning)
+                        .marketInsights(marketInsights)
+                        .historicalInsights(extractHistoricalInsights(historicalData))
+                        .aiRecommendations(List.of("No AI recommendations available"))
+                        .mcpEnhanced(false)
+                        .analysisTimestamp(LocalDateTime.now())
+                        .build();
             }
-            
-            // Determine if the requested discount should be approved
-            boolean approved = requestedDiscount <= recommendedDiscount;
+            // Extract values from GeminiService response
+            boolean veto = (boolean) aiResults.getOrDefault("veto", false);
+            double maxAllowedDiscount = ((Number) aiResults.getOrDefault("maxAllowedDiscount", requestedDiscount)).doubleValue();
+            String reasoning = (String) aiResults.getOrDefault("reasoning", "No reasoning provided.");
+            // For compatibility, treat maxAllowedDiscount as recommendedDiscount
+            double recommendedDiscount = maxAllowedDiscount;
+            double confidenceScore = 0.8; // Default, since not provided
+            String riskLevel = veto ? "high" : "low";
+            Map<String, Object> marketInsights = extractMarketInsights(marketData);
+            boolean approved = !veto && requestedDiscount <= recommendedDiscount;
             double finalDiscount = approved ? requestedDiscount : recommendedDiscount;
-            
-            // Log MCP-enhanced decision to Algolia
-            logMcpDecisionToAlgolia(productId, userId, requestedDiscount, finalDiscount, 
-                    approved, reasoning, confidenceScore, riskLevel);
-            
             return McpProfitAnalysisResult.builder()
                     .productId(productId)
                     .userId(userId)
@@ -327,14 +325,14 @@ public class McpProfitProtectionService {
                     .reasoning(reasoning)
                     .marketInsights(marketInsights)
                     .historicalInsights(extractHistoricalInsights(historicalData))
-                    .aiRecommendations((List<String>) aiResults.get("alternative_strategies"))
+                    .aiRecommendations(List.of("No AI recommendations available"))
                     .mcpEnhanced(true)
                     .analysisTimestamp(LocalDateTime.now())
                     .build();
                     
         } catch (Exception e) {
             log.error("❌ Failed to process MCP results", e);
-            return createFallbackResult(productId, requestedDiscount, userId);
+            throw e;
         }
     }
     
@@ -463,105 +461,6 @@ public class McpProfitProtectionService {
                 "conversion_uplift", "15%",
                 "revenue_impact", "positive"
         );
-    }
-    
-    private McpProfitAnalysisResult createFallbackResult(String productId, double requestedDiscount, String userId) {
-        // Basic fallback when MCP analysis fails
-        log.warn("🔄 Using basic fallback analysis for product: {}", productId);
-        return McpProfitAnalysisResult.builder()
-                .productId(productId)
-                .userId(userId)
-                .requestedDiscount(requestedDiscount)
-                .recommendedDiscount(requestedDiscount * 0.8) // Conservative fallback
-                .finalDiscount(requestedDiscount * 0.8)
-                .approved(false)
-                .confidenceScore(0.5)
-                .riskLevel("medium")
-                .reasoning("MCP analysis unavailable - using conservative fallback")
-                .mcpEnhanced(false)
-                .analysisTimestamp(LocalDateTime.now())
-                .build();
-    }
-    
-    /**
-     * Enhanced fallback with business logic when MCP is disabled or unavailable
-     */
-    private McpProfitAnalysisResult createEnhancedFallbackResult(
-            String productId, 
-            double requestedDiscount, 
-            String userId, 
-            Map<String, Object> marketContext) {
-        
-        log.info("📊 Creating enhanced fallback analysis for product: {}", productId);
-        
-        // Apply business rules for discount approval
-        double maxAllowedDiscount = 25.0; // 25% max
-        double recommendedDiscount = Math.min(requestedDiscount, maxAllowedDiscount);
-        boolean approved = requestedDiscount <= maxAllowedDiscount;
-        
-        // Calculate confidence based on discount size
-        double confidenceScore = calculateFallbackConfidence(requestedDiscount, maxAllowedDiscount);
-        
-        // Determine risk level
-        String riskLevel = requestedDiscount > 20 ? "high" : 
-                          requestedDiscount > 10 ? "medium" : "low";
-        
-        // Generate reasoning
-        String reasoning = String.format(
-            "Business rule analysis: %s discount of %.1f%% (max allowed: %.1f%%). %s",
-            approved ? "Approved" : "Reduced",
-            requestedDiscount,
-            maxAllowedDiscount,
-            approved ? "Within acceptable profit margins." : "Adjusted to protect profit margins."
-        );
-        
-        // Create mock market insights
-        List<String> marketInsights = List.of(
-            "Standard profit protection rules applied",
-            "Conservative discount policy in effect",
-            "No real-time market data available"
-        );
-        
-        // Create mock AI recommendations
-        List<String> aiRecommendations = List.of(
-            approved ? "Discount approved within policy limits" : "Consider alternative engagement strategies",
-            "Monitor conversion rates after discount application",
-            "Enable MCP integration for enhanced AI analysis"
-        );
-        
-        return McpProfitAnalysisResult.builder()
-                .productId(productId)
-                .userId(userId)
-                .requestedDiscount(requestedDiscount)
-                .recommendedDiscount(recommendedDiscount)
-                .finalDiscount(recommendedDiscount)
-                .approved(approved)
-                .confidenceScore(confidenceScore)
-                .riskLevel(riskLevel)
-                .reasoning(reasoning)
-                .marketInsights(Map.of(
-                    "analysis_type", "fallback",
-                    "insights", marketInsights
-                ))
-                .aiRecommendations(aiRecommendations)
-                .mcpEnhanced(false)
-                .analysisTimestamp(LocalDateTime.now())
-                .build();
-    }
-    
-    /**
-     * Calculate confidence score for fallback analysis
-     */
-    private double calculateFallbackConfidence(double requestedDiscount, double maxAllowed) {
-        if (requestedDiscount <= maxAllowed * 0.5) {
-            return 0.9; // High confidence for small discounts
-        } else if (requestedDiscount <= maxAllowed * 0.75) {
-            return 0.75; // Medium-high confidence
-        } else if (requestedDiscount <= maxAllowed) {
-            return 0.6; // Medium confidence
-        } else {
-            return 0.4; // Lower confidence for excessive discounts
-        }
     }
     
     /**

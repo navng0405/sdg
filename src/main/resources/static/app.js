@@ -1,7 +1,7 @@
 // Smart Discount Generator - Frontend Application
 class SmartDiscountGenerator {
     constructor() {
-        this.apiBaseUrl = 'http://localhost:8081/api';
+        this.apiBaseUrl = 'http://localhost:8080/api';
         this.currentUserId = 'user-001';
         this.currentProduct = null;
         this.allProducts = [];
@@ -88,10 +88,10 @@ class SmartDiscountGenerator {
     async loadInitialData() {
         try {
             this.showLoading('Loading product data...');
-            
+
             // Load products from Algolia API
             await this.loadProductsFromAPI();
-            
+
             // Set initial product (first product or random)
             if (this.allProducts.length > 0) {
                 this.currentProductIndex = Math.floor(Math.random() * Math.min(this.allProducts.length, 5));
@@ -99,28 +99,17 @@ class SmartDiscountGenerator {
                 console.log('Initial product loaded from API:', this.currentProduct);
                 this.updateProductDisplay();
             } else {
-                // Fallback to static product if API fails
-                this.currentProduct = {
-                    id: 'PROD001',
-                    objectId: 'PROD001',
-                    name: 'Wireless Bluetooth Headphones',
-                    description: 'Premium noise-cancelling wireless headphones with 30-hour battery life',
-                    price: 199.99,
-                    category: 'Electronics',
-                    imageUrl: 'https://images.unsplash.com/photo-1484704849700-f032a568e944?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0',
-                    rating: 4.5,
-                    numberOfReviews: 1250
-                };
-                console.log('Using fallback product:', this.currentProduct);
-                this.updateProductDisplay();
+                // No products loaded - show error, do NOT use fallback
+                this.currentProduct = null;
+                this.showError('Failed to load products from API. Please check backend/Algolia connection.');
             }
-            
+
             // Load user behavior history
-            this.loadUserBehaviorHistory();
-            
+            await this.loadUserBehaviorHistory();
+
         } catch (error) {
             console.error('Error loading initial data:', error);
-            this.showError('Failed to load product data');
+            this.showError('Failed to load product data from API.');
         } finally {
             this.hideLoading();
         }
@@ -132,7 +121,7 @@ class SmartDiscountGenerator {
             if (response.ok) {
                 const data = await response.json();
                 console.log('Loaded products from API:', data);
-                
+
                 // Convert API products to internal format
                 this.allProducts = data.products.map(product => ({
                     id: product.objectID,
@@ -146,7 +135,7 @@ class SmartDiscountGenerator {
                     numberOfReviews: product.number_of_reviews || 100,
                     profitMargin: product.profit_margin || 0.3
                 }));
-                
+
                 console.log(`Loaded ${this.allProducts.length} products`);
                 console.log('First product structure:', this.allProducts[0]);
             } else {
@@ -154,7 +143,7 @@ class SmartDiscountGenerator {
             }
         } catch (error) {
             console.error('Error loading products from API:', error);
-            this.allProducts = []; // Will trigger fallback
+            this.allProducts = []; // No fallback
         }
     }
     
@@ -309,24 +298,24 @@ class SmartDiscountGenerator {
     updateBrowseHistory() {
         const historyContainer = document.getElementById('browse-history-content');
         console.log('Updating browse history with', this.behaviorHistory?.length || 0, 'events');
-        
+
         // If we have behavior history from API, use it
         if (this.behaviorHistory && this.behaviorHistory.length > 0) {
             historyContainer.innerHTML = '';
-            
+
             // Show recent behavior events
             const recentEvents = this.behaviorHistory.slice(0, 10);
             console.log('Displaying', recentEvents.length, 'recent events');
             recentEvents.forEach((event, index) => {
                 const historyItem = document.createElement('div');
                 historyItem.className = 'history-item';
-                
+
                 const icon = this.getEventIcon(event.eventType);
                 const description = this.getEventDescription(event);
                 const timeAgo = this.getTimeAgo(event.timestamp);
-                
+
                 console.log(`Event ${index + 1}:`, event.eventType, '-', description);
-                
+
                 historyItem.innerHTML = `
                     <i class="${icon}"></i>
                     <div class="history-content">
@@ -334,31 +323,12 @@ class SmartDiscountGenerator {
                         <time>${timeAgo}</time>
                     </div>
                 `;
-                
+
                 historyContainer.appendChild(historyItem);
             });
         } else {
-            console.log('No behavior history, keeping existing content or adding defaults');
-            // Keep existing content if no API data yet
-            // Only add default items if container is completely empty
-            if (historyContainer.innerHTML.trim() === '') {
-                historyContainer.innerHTML = `
-                    <div class="history-item">
-                        <i class="fas fa-search"></i>
-                        <div class="history-content">
-                            <span>Searched for: "wireless headphones"</span>
-                            <time>2 minutes ago</time>
-                        </div>
-                    </div>
-                    <div class="history-item">
-                        <i class="fas fa-eye"></i>
-                        <div class="history-content">
-                            <span>Viewed: Smart Watch Series X</span>
-                            <time>5 minutes ago</time>
-                        </div>
-                    </div>
-                `;
-            }
+            // No history - show error, do NOT use fallback
+            historyContainer.innerHTML = '<div class="history-item"><i class="fas fa-exclamation-triangle"></i><div class="history-content"><span>No user behavior history found. Please check backend/API.</span><time>Just now</time></div></div>';
         }
     }
     

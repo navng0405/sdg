@@ -17,6 +17,7 @@ const express = require('express');
 const cors = require('cors');
 const algoliasearch = require('algoliasearch');
 const winston = require('winston');
+const axios = require('axios');
 
 // Configure logging
 const logger = winston.createLogger({
@@ -265,30 +266,41 @@ class AlgoliaIntegratedMcpServer {
   // Tool method implementations
   async generateSmartDiscount(req, res) {
     try {
-      const { userId, productId, userBehavior, requestedDiscount } = req.body || {};
-      
+      const { userId, productId, userBehavior, requestedDiscount, aiProvider } = req.body || {};
       logger.info(`🎯 Generating smart discount for user ${userId}, product ${productId}`);
-      
-      // Mock AI-powered discount generation logic
+
+      // Choose AI provider (default: Claude, fallback: Gemini)
+      let aiResult;
+      const prompt = `Generate a discount recommendation for user ${userId} on product ${productId} with requested discount ${requestedDiscount}. Consider user behavior: ${JSON.stringify(userBehavior)}`;
+      if (aiProvider === 'gemini' && GEMINI_API_KEY) {
+        aiResult = await callGemini(prompt);
+      } else if (ANTHROPIC_API_KEY) {
+        aiResult = await callClaude(prompt);
+      } else if (GEMINI_API_KEY) {
+        aiResult = await callGemini(prompt);
+      } else {
+        throw new Error('No AI API key available');
+      }
+
+      // Example: parse AI result (customize as needed)
+      const discountValue = requestedDiscount || 15;
       const discountData = {
         userId,
         productId,
         discount: {
           type: 'percentage',
-          value: requestedDiscount || 15,
+          value: discountValue,
           code: `SMART${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
-          expiresIn: 1800, // 30 minutes
-          reason: 'AI-detected price sensitivity'
+          expiresIn: 1800,
+          reason: 'AI-generated recommendation'
         },
-        confidence: 0.87,
-        reasoning: 'User showed hesitation patterns and price comparison behavior'
+        aiProvider: aiProvider || (ANTHROPIC_API_KEY ? 'claude' : 'gemini'),
+        aiResult
       };
-      
       if (res) {
         res.json({ success: true, data: discountData });
       }
       return discountData;
-      
     } catch (error) {
       logger.error('❌ Error generating smart discount:', error);
       const errorResult = { success: false, error: error.message };
@@ -424,6 +436,46 @@ class AlgoliaIntegratedMcpServer {
   async stop() {
     logger.info('🛑 Stopping Algolia MCP Server...');
   }
+}
+
+// Read AI keys from environment
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
+// Helper: Claude API call
+async function callClaude(prompt) {
+  if (!ANTHROPIC_API_KEY) throw new Error('Claude API key not set');
+  const response = await axios.post(
+    'https://api.anthropic.com/v1/messages',
+    {
+      model: 'claude-3-sonnet-20240229',
+      max_tokens: 512,
+      messages: [{ role: 'user', content: prompt }]
+    },
+    {
+      headers: {
+        'x-api-key': ANTHROPIC_API_KEY,
+        'content-type': 'application/json',
+        'anthropic-version': '2023-06-01'
+      }
+    }
+  );
+  return response.data;
+}
+
+// Helper: Gemini API call
+async function callGemini(prompt) {
+  if (!GEMINI_API_KEY) throw new Error('Gemini API key not set');
+  const response = await axios.post(
+    'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=' + GEMINI_API_KEY,
+    {
+      contents: [{ parts: [{ text: prompt }] }]
+    },
+    {
+      headers: { 'content-type': 'application/json' }
+    }
+  );
+  return response.data;
 }
 
 // Configure Algolia MCP Server with your credentials
