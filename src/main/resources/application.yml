@@ -12,13 +12,13 @@ spring:
 
 # Gemini configuration for tool calling
 gemini:
-  api-key: ${GEMINI_API_KEY:AIzaSyDQD0W7maSXEkvcOX0Hicp6FoqqyteTZZ4}
+  api-key: ${GEMINI_API_KEY:XXXXXXX}
   base-url: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent
 
 # Legacy Algolia config (kept for backward compatibility)
 algolia:
-  application-id: ${ALGOLIA_APPLICATION_ID:D5NLZGUAN7}
-  admin-api-key: ${ALGOLIA_ADMIN_API_KEY:f563ed99dff0f7ccb8c2b78e681376be}
+  application-id: ${ALGOLIA_APPLICATION_ID:XXXXXX}
+  admin-api-key: ${ALGOLIA_ADMIN_API_KEY:XXXXXXX}
   search-api-key: ${ALGOLIA_SEARCH_API_KEY:your_algolia_search_key}
   indexes:
     products: sdg_products
