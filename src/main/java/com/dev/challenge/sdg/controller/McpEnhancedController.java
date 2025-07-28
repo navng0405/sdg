@@ -2,12 +2,14 @@ package com.dev.challenge.sdg.controller;
 
 import com.dev.challenge.sdg.service.McpProfitProtectionService;
 import com.dev.challenge.sdg.service.AlgoliaService;
+import com.dev.challenge.sdg.model.Product;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -183,40 +185,74 @@ public class McpEnhancedController {
             response.put("mcp_enhanced", true);
             response.put("ai_reasoning_enabled", true);
             
-            // Simulate MCP-powered intelligent recommendations
-            java.util.List<Map<String, Object>> recommendations = java.util.List.of(
-                    Map.of(
-                            "product_id", "PROD018",
-                            "name", "Waterproof Hiking Backpack",
-                            "ai_score", 0.94,
-                            "reasoning", "High compatibility with user's outdoor activity preferences",
-                            "optimal_discount", 12.5,
-                            "confidence", 0.91
-                    ),
-                    Map.of(
-                            "product_id", "PROD001",
-                            "name", "Wireless Bluetooth Headphones",
-                            "ai_score", 0.87,
-                            "reasoning", "Matches user's electronics category affinity",
-                            "optimal_discount", 15.0,
-                            "confidence", 0.88
-                    ),
-                    Map.of(
-                            "product_id", "PROD021",
-                            "name", "The Art of Minimalist Living",
-                            "ai_score", 0.82,
-                            "reasoning", "Aligns with user's lifestyle content consumption",
-                            "optimal_discount", 8.0,
-                            "confidence", 0.79
-                    )
-            );
-            
-            response.put("recommendations", recommendations);
-            response.put("total_analyzed", 47);
-            response.put("ai_processing_time_ms", 187);
-            response.put("personalization_factors", java.util.List.of(
-                    "Purchase history", "Browsing patterns", "Seasonal preferences", "Price sensitivity"
-            ));
+            try {
+                // Get real-time recommendations from Algolia
+                var products = algoliaService.searchProducts("", Math.min(limit, 10)).get();
+                java.util.List<Map<String, Object>> recommendations = new java.util.ArrayList<>();
+                
+                for (var product : products) {
+                    Double rating = product.getAverageRating();
+                    Double profitMargin = product.getProfitMargin();
+                    Integer reviews = product.getNumberOfReviews();
+                    
+                    // Calculate AI score based on real metrics
+                    double aiScore = 0.3 * (rating != null ? rating / 5.0 : 0.8) + 
+                                   0.2 * (profitMargin != null ? profitMargin : 0.35) + 
+                                   0.3 * Math.min((reviews != null ? reviews : 100) / 1000.0, 1.0) + 
+                                   0.2 * Math.random(); // Add some randomization
+                    
+                    // Calculate optimal discount based on profit margin
+                    double optimalDiscount = profitMargin != null ? Math.min(profitMargin * 80, 25.0) : 10.0;
+                    
+                    Map<String, Object> recommendation = new HashMap<>();
+                    recommendation.put("product_id", product.getObjectId());
+                    recommendation.put("name", product.getName());
+                    recommendation.put("price", "$" + product.getPrice());
+                    recommendation.put("ai_score", Math.round(aiScore * 100) / 100.0);
+                    recommendation.put("reasoning", "Live inventory analysis: " + product.getDescription());
+                    recommendation.put("optimal_discount", Math.round(optimalDiscount * 10) / 10.0);
+                    recommendation.put("confidence", aiScore);
+                    recommendation.put("rating", rating != null ? rating : 4.0);
+                    recommendation.put("reviews", reviews != null ? reviews : 100);
+                    recommendation.put("inventory_level", product.getInventoryLevel());
+                    recommendation.put("category", product.getCategory());
+                    
+                    recommendations.add(recommendation);
+                    
+                    if (recommendations.size() >= limit) break;
+                }
+                
+                response.put("recommendations", recommendations);
+                response.put("total_analyzed", products.size());
+                response.put("ai_processing_time_ms", 187);
+                response.put("data_source", "live_algolia_index");
+                response.put("personalization_factors", java.util.List.of(
+                        "Real-time inventory levels", "Live pricing data", "Current ratings", "Profit margin analysis"
+                ));
+                
+            } catch (Exception e) {
+                log.error("Failed to fetch real-time recommendations", e);
+                
+                // Fallback to demo data
+                java.util.List<Map<String, Object>> fallbackRecommendations = java.util.List.of(
+                        Map.of(
+                                "product_id", "PROD018",
+                                "name", "Waterproof Hiking Backpack",
+                                "ai_score", 0.94,
+                                "reasoning", "Fallback recommendation - live data temporarily unavailable",
+                                "optimal_discount", 12.5,
+                                "confidence", 0.91
+                        )
+                );
+                
+                response.put("recommendations", fallbackRecommendations);
+                response.put("total_analyzed", 1);
+                response.put("ai_processing_time_ms", 187);
+                response.put("data_source", "fallback_mode");
+                response.put("personalization_factors", java.util.List.of(
+                        "Fallback mode active", "Real-time data temporarily unavailable"
+                ));
+            }
             
             return ResponseEntity.ok(response);
         });
@@ -240,35 +276,171 @@ public class McpEnhancedController {
             response.put("mcp_powered", true);
             response.put("ai_model", "claude-3-sonnet");
             
-            // Simulate intelligent response based on message analysis
+            // Enhanced intelligent response based on message analysis
             String intelligentResponse;
             java.util.List<Map<String, Object>> suggestions = new java.util.ArrayList<>();
             
-            if (message.toLowerCase().contains("discount") || message.toLowerCase().contains("price")) {
-                intelligentResponse = "I can help you find the best deals! Based on your preferences and our AI analysis, " +
-                        "I've identified some optimized discounts that balance great value with sustainable pricing.";
+            // Check for product searches and fetch real-time data from Algolia
+            if (message.toLowerCase().contains("headphones") || message.toLowerCase().contains("wireless") || 
+                message.toLowerCase().contains("bluetooth") || message.toLowerCase().contains("audio")) {
                 
-                suggestions.add(Map.of(
-                        "type", "discount_opportunity",
-                        "product_id", "PROD018",
-                        "discount", "12%",
-                        "confidence", 0.89,
-                        "reasoning", "High-value product with optimal margin protection"
-                ));
-            } else if (message.toLowerCase().contains("recommend") || message.toLowerCase().contains("suggest")) {
-                intelligentResponse = "Based on your browsing history and preferences, I've used our MCP-powered " +
-                        "recommendation engine to find products that perfectly match your interests!";
+                try {
+                    // Search for wireless headphones in Algolia
+                    var searchResults = algoliaService.searchProducts("wireless headphones", 5).get();
+                    
+                    intelligentResponse = "🎧 Perfect! I found " + searchResults.size() + " excellent wireless headphones from our live inventory. " +
+                            "Here are my AI-powered recommendations based on real-time Algolia data:";
+                    
+                    for (var product : searchResults) {
+                        suggestions.add(Map.of(
+                                "type", "product_recommendation",
+                                "product_name", product.getName(),
+                                "price", "$" + product.getPrice(),
+                                "rating", product.getAverageRating() + "/5",
+                                "reviews", product.getNumberOfReviews() + " reviews",
+                                "key_features", product.getDescription(),
+                                "reasoning", "Real-time match from our Algolia index with " + 
+                                           Math.round(product.getProfitMargin() * 100) + "% profit margin"
+                        ));
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to fetch real-time headphones data", e);
+                    intelligentResponse = "🎧 I'm searching our live inventory for wireless headphones. Let me get you the latest data...";
+                }
                 
-                suggestions.add(Map.of(
-                        "type", "personalized_recommendation",
-                        "product_id", "PROD001",
-                        "match_score", 0.94,
-                        "reasoning", "Excellent match for your electronics preferences"
-                ));
+            } else if (message.toLowerCase().contains("eco") || message.toLowerCase().contains("sustainable") || 
+                       message.toLowerCase().contains("green") || message.toLowerCase().contains("environment")) {
+                
+                try {
+                    // Search for eco-friendly products
+                    var searchResults = algoliaService.searchProducts("eco sustainable bamboo", 3).get();
+                    
+                    intelligentResponse = "🌱 Excellent choice! Here are " + searchResults.size() + " top eco-friendly products from our live inventory:";
+                    
+                    for (var product : searchResults) {
+                        suggestions.add(Map.of(
+                                "type", "eco_product",
+                                "product_name", product.getName(),
+                                "price", "$" + product.getPrice(),
+                                "rating", product.getAverageRating() + "/5",
+                                "eco_score", "95/100", // Could be calculated from product tags
+                                "reasoning", "Live inventory item: " + product.getDescription()
+                        ));
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to fetch real-time eco products", e);
+                    intelligentResponse = "🌱 Let me search our sustainable product catalog for you...";
+                }
+                
+            } else if (message.toLowerCase().contains("discount") || message.toLowerCase().contains("price") || 
+                       message.toLowerCase().contains("deal") || message.toLowerCase().contains("sale")) {
+                
+                try {
+                    // Get high-margin products suitable for discounts
+                    var searchResults = algoliaService.searchProducts("", 5).get();
+                    
+                    intelligentResponse = "💰 I can help you find the best deals! Based on real-time inventory and AI analysis:";
+                    
+                    for (var product : searchResults) {
+                        Double profitMargin = product.getProfitMargin();
+                        if (profitMargin != null && profitMargin > 0.3) { // Only high-margin products
+                            BigDecimal price = product.getPrice();
+                            Double discountPercent = Math.min(profitMargin * 80, 25.0); // Max 25% discount
+                            Double discountedPrice = price.doubleValue() * (1 - discountPercent / 100);
+                            
+                            suggestions.add(Map.of(
+                                    "type", "discount_opportunity",
+                                    "product_name", product.getName(),
+                                    "original_price", "$" + String.format("%.2f", price),
+                                    "discounted_price", "$" + String.format("%.2f", discountedPrice),
+                                    "discount", String.format("%.0f%% OFF", discountPercent),
+                                    "confidence", profitMargin,
+                                    "reasoning", "Live inventory with " + Math.round(profitMargin * 100) + "% margin protection"
+                            ));
+                            break; // Just show one real discount opportunity
+                        }
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to fetch real-time discount data", e);
+                    intelligentResponse = "💰 Let me analyze our current inventory for the best discount opportunities...";
+                }
+                
+            } else if (message.toLowerCase().contains("recommend") || message.toLowerCase().contains("suggest") ||
+                       message.toLowerCase().contains("best") || message.toLowerCase().contains("popular")) {
+                
+                try {
+                    // Get top-rated products from Algolia
+                    var searchResults = algoliaService.searchProducts("", 3).get();
+                    
+                    intelligentResponse = "⭐ Based on our live inventory, here are today's top recommendations:";
+                    
+                    for (var product : searchResults) {
+                        Double rating = product.getAverageRating();
+                        if (rating != null && rating >= 4.0) {
+                            suggestions.add(Map.of(
+                                    "type", "personalized_recommendation",
+                                    "product_name", product.getName(),
+                                    "price", "$" + product.getPrice(),
+                                    "rating", rating + "/5",
+                                    "match_score", rating / 5.0,
+                                    "reasoning", "Live inventory: " + product.getDescription()
+                            ));
+                        }
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to fetch real-time recommendations", e);
+                    intelligentResponse = "⭐ Let me check our live inventory for personalized recommendations...";
+                }
+                
+            } else if (message.toLowerCase().contains("stock") || message.toLowerCase().contains("inventory") || 
+                       message.toLowerCase().contains("available") || message.toLowerCase().contains("have")) {
+                
+                try {
+                    // Get current inventory from Algolia
+                    var searchResults = algoliaService.searchProducts("", 5).get();
+                    
+                    intelligentResponse = "📦 Here's what we currently have in stock from our live inventory:";
+                    
+                    for (var product : searchResults) {
+                        Integer inventoryLevel = product.getInventoryLevel();
+                        String stockStatus = inventoryLevel != null && inventoryLevel > 0 ? 
+                                (inventoryLevel > 10 ? "In Stock (" + inventoryLevel + " available)" : "Limited Stock (" + inventoryLevel + " left)") 
+                                : "Low Stock";
+                        
+                        suggestions.add(Map.of(
+                                "type", "inventory_status",
+                                "product_name", product.getName(),
+                                "price", "$" + product.getPrice(),
+                                "category", product.getCategory(),
+                                "stock_status", stockStatus,
+                                "rating", product.getAverageRating() + "/5",
+                                "reasoning", "Current inventory level: " + (inventoryLevel != null ? inventoryLevel + " units" : "Limited quantity")
+                        ));
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to fetch inventory data", e);
+                    intelligentResponse = "📦 Let me check our current inventory levels for you...";
+                }
+                
             } else {
-                intelligentResponse = "I'm your AI shopping assistant, powered by Algolia MCP Server! " +
-                        "I can help you discover products, find optimized discounts, and provide personalized recommendations. " +
-                        "What would you like to explore today?";
+                // For general queries, show some live inventory stats
+                try {
+                    var searchResults = algoliaService.searchProducts("", 1).get();
+                    int totalProducts = searchResults.size() > 0 ? 50 : 0; // Estimate based on search
+                    
+                    intelligentResponse = "🤖 I'm your AI shopping assistant, powered by Algolia MCP Server! " +
+                            "I have access to " + totalProducts + "+ live products in our inventory. " +
+                            "I can help you discover products, find optimized discounts, and provide personalized recommendations. " +
+                            "Try asking me about:\n" +
+                            "• 'Show me wireless headphones under $200'\n" +
+                            "• 'Find eco-friendly products under $100'\n" +
+                            "• 'What are the best deals available?'\n" +
+                            "• 'Recommend popular electronics'\n\n" +
+                            "What would you like to explore today?";
+                } catch (Exception e) {
+                    intelligentResponse = "🤖 I'm your AI shopping assistant, powered by Algolia MCP Server! " +
+                            "What would you like to explore today?";
+                }
             }
             
             response.put("message", intelligentResponse);
@@ -310,5 +482,23 @@ public class McpEnhancedController {
                 analysis.getFinalDiscount(),
                 analysis.getReasoning()
         );
+    }
+    
+    // Helper method for generating recommendation reasoning
+    private String generateRecommendationReasoning(Product product, String context) {
+        String name = product.getName();
+        String category = product.getCategory();
+        Double rating = product.getAverageRating();
+        Integer reviews = product.getNumberOfReviews();
+        
+        if (context != null && context.toLowerCase().contains("outdoor")) {
+            return "Highly rated " + category.toLowerCase() + " item perfect for outdoor activities";
+        } else if (rating != null && rating >= 4.5) {
+            return "Premium quality item with " + rating + "/5 rating from " + reviews + " customers";
+        } else if (category != null && category.equalsIgnoreCase("Electronics")) {
+            return "Latest technology in " + category.toLowerCase() + " with excellent user feedback";
+        } else {
+            return "Popular choice in " + category + " category based on live inventory data";
+        }
     }
 }

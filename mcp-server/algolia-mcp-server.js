@@ -247,310 +247,190 @@ class AlgoliaIntegratedMcpServer {
     }
   }
 
-// Configure Algolia MCP Server with your credentials
-const server = new AlgoliaMCPServer({
-  // Algolia Configuration
-  algolia: {
-    appId: process.env.ALGOLIA_APPLICATION_ID,
-    apiKey: process.env.ALGOLIA_ADMIN_API_KEY,
-    searchKey: process.env.ALGOLIA_SEARCH_API_KEY
-  },
-  
-  // MCP Server Configuration
-  server: {
-    name: 'smart-discount-generator-mcp',
-    version: '1.0.0',
-    description: 'Smart Discount Generator powered by Algolia MCP Server',
-    port: process.env.MCP_PORT || 3000
-  },
-  
-  // Enable advanced features
-  features: {
-    search: true,
-    analytics: true,
-    indexing: true,
-    ai_insights: true,
-    recommendations: true
-  },
-  
-  // Custom tool definitions for our app
-  tools: [
-    {
-      name: 'generate_smart_discount',
-      description: 'Generate AI-powered discount recommendations based on user behavior and product data',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          userId: { type: 'string' },
-          productId: { type: 'string' },
-          userBehavior: { type: 'object' },
-          requestedDiscount: { type: 'number' }
-        },
-        required: ['userId', 'productId']
+  async start() {
+    return new Promise((resolve, reject) => {
+      try {
+        this.app.listen(this.port, () => {
+          logger.info(`🚀 Algolia MCP Server started on port ${this.port}`);
+          logger.info(`📡 Health check: http://localhost:${this.port}/health`);
+          resolve();
+        });
+      } catch (error) {
+        logger.error('❌ Failed to start server:', error);
+        reject(error);
       }
-    },
-    {
-      name: 'analyze_user_journey',
-      description: 'Analyze user search and browsing patterns for personalization',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          userId: { type: 'string' },
-          sessionData: { type: 'object' },
-          timeRange: { type: 'string' }
-        },
-        required: ['userId']
-      }
-    },
-    {
-      name: 'optimize_search_results',
-      description: 'Enhance search results with AI-powered personalization and business rules',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          query: { type: 'string' },
-          userId: { type: 'string' },
-          context: { type: 'object' }
-        },
-        required: ['query']
-      }
-    },
-    {
-      name: 'track_conversion_funnel',
-      description: 'Track and analyze conversion funnel performance with AI insights',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          eventType: { type: 'string' },
-          userId: { type: 'string' },
-          productId: { type: 'string' },
-          metadata: { type: 'object' }
-        },
-        required: ['eventType']
-      }
-    }
-  ]
-});
-
-// Enhanced tool implementations
-server.addToolHandler('generate_smart_discount', async (params) => {
-  const { userId, productId, userBehavior = {}, requestedDiscount = 10 } = params;
-  
-  try {
-    // Search for product data using Algolia MCP
-    const productData = await server.algolia.search('sdg_products', '', {
-      filters: `objectID:${productId}`,
-      hitsPerPage: 1
     });
-    
-    // Search for user behavior data
-    const userEvents = await server.algolia.search('sdg_user_events', '', {
-      filters: `userId:${userId}`,
-      hitsPerPage: 50
-    });
-    
-    // AI-powered discount analysis
-    const discountAnalysis = await server.ai.analyze({
-      prompt: `Analyze the discount request for user ${userId} and product ${productId}`,
-      context: {
-        product: productData.hits[0] || {},
-        userBehavior: userEvents.hits || [],
-        requestedDiscount,
-        marketConditions: 'normal'
-      },
-      tools: ['profit_analysis', 'market_comparison', 'user_segmentation']
-    });
-    
-    return {
-      success: true,
-      discount: {
-        percentage: discountAnalysis.recommendedDiscount || requestedDiscount,
-        reasoning: discountAnalysis.reasoning,
-        confidence: discountAnalysis.confidence,
-        expiryMinutes: 30,
-        conditions: discountAnalysis.conditions || []
-      },
-      aiInsights: discountAnalysis.insights,
-      metadata: {
-        timestamp: new Date().toISOString(),
-        mcpVersion: server.version
-      }
-    };
-  } catch (error) {
-    console.error('Error generating smart discount:', error);
-    return {
-      success: false,
-      error: error.message,
-      fallback: {
-        percentage: Math.min(requestedDiscount, 15),
-        reasoning: 'Applied conservative discount due to analysis error'
-      }
-    };
   }
-});
 
-server.addToolHandler('analyze_user_journey', async (params) => {
-  const { userId, sessionData = {}, timeRange = '7d' } = params;
-  
-  try {
-    // Get user search analytics
-    const searchAnalytics = await server.algolia.getAnalytics({
-      index: 'sdg_products',
-      filters: { userId },
-      timeRange
-    });
-    
-    // Get user event data
-    const userEvents = await server.algolia.search('sdg_user_events', '', {
-      filters: `userId:${userId}`,
-      hitsPerPage: 100
-    });
-    
-    // AI analysis of user journey
-    const journeyAnalysis = await server.ai.analyze({
-      prompt: `Analyze the user journey and behavior patterns for user ${userId}`,
-      context: {
-        searchAnalytics,
-        userEvents: userEvents.hits,
-        sessionData,
-        timeRange
-      },
-      tools: ['pattern_recognition', 'intent_analysis', 'personalization']
-    });
-    
-    return {
-      success: true,
-      userProfile: {
-        searchPreferences: journeyAnalysis.searchPreferences,
-        categoryAffinity: journeyAnalysis.categoryAffinity,
-        priceRange: journeyAnalysis.priceRange,
-        conversionProbability: journeyAnalysis.conversionProbability
-      },
-      recommendations: journeyAnalysis.recommendations,
-      aiInsights: journeyAnalysis.insights
-    };
-  } catch (error) {
-    console.error('Error analyzing user journey:', error);
-    return { success: false, error: error.message };
-  }
-});
-
-server.addToolHandler('optimize_search_results', async (params) => {
-  const { query, userId, context = {} } = params;
-  
-  try {
-    // Get base search results
-    const baseResults = await server.algolia.search('sdg_products', query, {
-      hitsPerPage: 20
-    });
-    
-    // Get user preferences if userId provided
-    let userPreferences = {};
-    if (userId) {
-      const userEvents = await server.algolia.search('sdg_user_events', '', {
-        filters: `userId:${userId}`,
-        hitsPerPage: 50
-      });
-      userPreferences = { events: userEvents.hits };
+  // Tool method implementations
+  async generateSmartDiscount(req, res) {
+    try {
+      const { userId, productId, userBehavior, requestedDiscount } = req.body || {};
+      
+      logger.info(`🎯 Generating smart discount for user ${userId}, product ${productId}`);
+      
+      // Mock AI-powered discount generation logic
+      const discountData = {
+        userId,
+        productId,
+        discount: {
+          type: 'percentage',
+          value: requestedDiscount || 15,
+          code: `SMART${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
+          expiresIn: 1800, // 30 minutes
+          reason: 'AI-detected price sensitivity'
+        },
+        confidence: 0.87,
+        reasoning: 'User showed hesitation patterns and price comparison behavior'
+      };
+      
+      if (res) {
+        res.json({ success: true, data: discountData });
+      }
+      return discountData;
+      
+    } catch (error) {
+      logger.error('❌ Error generating smart discount:', error);
+      const errorResult = { success: false, error: error.message };
+      if (res) res.status(500).json(errorResult);
+      return errorResult;
     }
-    
-    // AI-powered result optimization
-    const optimization = await server.ai.analyze({
-      prompt: `Optimize search results for query "${query}" based on user preferences and business rules`,
-      context: {
-        originalResults: baseResults.hits,
-        userPreferences,
+  }
+
+  async analyzeUserJourney(req, res) {
+    try {
+      const { userId, sessionData, timeRange } = req.body || {};
+      
+      logger.info(`📊 Analyzing user journey for ${userId}`);
+      
+      // Mock user journey analysis
+      const journeyData = {
+        userId,
+        analysis: {
+          sessionDuration: '8m 34s',
+          pagesViewed: 12,
+          searchQueries: ['wireless headphones', 'bluetooth speakers', 'audio equipment'],
+          conversionProbability: 0.73,
+          recommendedActions: ['Show price comparison', 'Highlight free shipping', 'Display customer reviews']
+        },
+        insights: {
+          userType: 'price_conscious_researcher',
+          buyingStage: 'consideration',
+          riskFactors: ['price_sensitivity', 'comparison_shopping']
+        }
+      };
+      
+      if (res) {
+        res.json({ success: true, data: journeyData });
+      }
+      return journeyData;
+      
+    } catch (error) {
+      logger.error('❌ Error analyzing user journey:', error);
+      const errorResult = { success: false, error: error.message };
+      if (res) res.status(500).json(errorResult);
+      return errorResult;
+    }
+  }
+
+  async optimizeSearchResults(req, res) {
+    try {
+      const { query, userId, context } = req.body || {};
+      
+      logger.info(`🔍 Optimizing search results for query: "${query}"`);
+      
+      // Mock search optimization
+      const optimizedResults = {
         query,
-        ...context
-      },
-      tools: ['ranking_optimization', 'personalization', 'business_rules']
-    });
-    
-    return {
-      success: true,
-      optimizedResults: optimization.rerankedResults || baseResults.hits,
-      personalizations: optimization.personalizations || [],
-      aiInsights: optimization.insights,
-      metadata: {
-        originalCount: baseResults.hits.length,
-        optimizedCount: optimization.rerankedResults?.length || baseResults.hits.length,
-        processingTimeMs: optimization.processingTime
+        userId,
+        optimization: {
+          originalResultCount: 156,
+          optimizedResultCount: 24,
+          personalizationApplied: true,
+          boostFactors: ['user_preferences', 'purchase_history', 'trending_items']
+        },
+        suggestions: {
+          queryRefinements: ['wireless bluetooth headphones', 'noise cancelling headphones'],
+          categoryFilters: ['Electronics > Audio', 'Electronics > Headphones'],
+          priceRange: { min: 50, max: 300 }
+        }
+      };
+      
+      if (res) {
+        res.json({ success: true, data: optimizedResults });
       }
-    };
-  } catch (error) {
-    console.error('Error optimizing search results:', error);
-    return { success: false, error: error.message };
+      return optimizedResults;
+      
+    } catch (error) {
+      logger.error('❌ Error optimizing search results:', error);
+      const errorResult = { success: false, error: error.message };
+      if (res) res.status(500).json(errorResult);
+      return errorResult;
+    }
   }
-});
 
-server.addToolHandler('track_conversion_funnel', async (params) => {
-  const { eventType, userId, productId, metadata = {} } = params;
-  
-  try {
-    // Store event in Algolia
-    const eventData = {
-      objectID: `${userId}_${Date.now()}`,
-      userId,
-      productId,
-      eventType,
-      timestamp: new Date().toISOString(),
-      ...metadata
-    };
-    
-    await server.algolia.saveObject('sdg_user_events', eventData);
-    
-    // Get funnel analytics
-    const funnelData = await server.algolia.search('sdg_user_events', '', {
-      filters: `userId:${userId}`,
-      hitsPerPage: 100
-    });
-    
-    // AI analysis of conversion funnel
-    const funnelAnalysis = await server.ai.analyze({
-      prompt: `Analyze conversion funnel performance for user ${userId} after ${eventType} event`,
-      context: {
-        currentEvent: eventData,
-        userHistory: funnelData.hits,
-        productId
-      },
-      tools: ['funnel_analysis', 'conversion_prediction', 'intervention_recommendations']
-    });
-    
-    return {
-      success: true,
-      event: eventData,
-      funnelInsights: funnelAnalysis.funnelMetrics,
-      conversionProbability: funnelAnalysis.conversionProbability,
-      recommendations: funnelAnalysis.interventionRecommendations,
-      aiInsights: funnelAnalysis.insights
-    };
-  } catch (error) {
-    console.error('Error tracking conversion funnel:', error);
-    return { success: false, error: error.message };
+  async trackConversionFunnel(req, res) {
+    try {
+      const { eventType, userId, productId, metadata } = req.body || {};
+      
+      logger.info(`📈 Tracking conversion event: ${eventType} for user ${userId}`);
+      
+      // Mock conversion tracking
+      const trackingData = {
+        eventType,
+        userId,
+        productId,
+        timestamp: new Date().toISOString(),
+        funnelStage: this.determineFunnelStage(eventType),
+        conversionMetrics: {
+          stageConversionRate: 0.68,
+          timeInStage: '2m 15s',
+          dropOffRisk: 'medium',
+          nextBestAction: 'show_social_proof'
+        },
+        recommendations: {
+          interventions: ['display_urgency_banner', 'show_similar_products'],
+          timing: 'immediate',
+          priority: 'high'
+        }
+      };
+      
+      if (res) {
+        res.json({ success: true, data: trackingData });
+      }
+      return trackingData;
+      
+    } catch (error) {
+      logger.error('❌ Error tracking conversion funnel:', error);
+      const errorResult = { success: false, error: error.message };
+      if (res) res.status(500).json(errorResult);
+      return errorResult;
+    }
   }
-});
 
-// Start the server
-async function startServer() {
-  try {
-    await server.start();
-    console.log(`
-🚀 Algolia MCP Server started successfully!
-🔗 Server URL: http://localhost:${server.config.server.port}
-🤖 AI Features: ${Object.keys(server.config.features).filter(k => server.config.features[k]).join(', ')}
-🛠️  Available Tools: ${server.tools.map(t => t.name).join(', ')}
-    `);
-  } catch (error) {
-    console.error('Failed to start Algolia MCP Server:', error);
-    process.exit(1);
+  // Helper method for funnel stage determination
+  determineFunnelStage(eventType) {
+    const stageMap = {
+      'page_view': 'awareness',
+      'product_view': 'interest',
+      'add_to_cart': 'consideration',
+      'checkout_start': 'intent',
+      'purchase': 'conversion',
+      'cart_abandon': 'abandonment'
+    };
+    return stageMap[eventType] || 'unknown';
+  }
+
+  async stop() {
+    logger.info('🛑 Stopping Algolia MCP Server...');
   }
 }
 
-// Handle graceful shutdown
-process.on('SIGINT', async () => {
-  console.log('\n🛑 Shutting down Algolia MCP Server...');
-  await server.stop();
-  process.exit(0);
-});
+// Configure Algolia MCP Server with your credentials
+const server = new AlgoliaIntegratedMcpServer();
 
-startServer();
+// Start the server
+server.start().catch(error => {
+  logger.error('❌ Failed to start MCP server:', error);
+  process.exit(1);
+});

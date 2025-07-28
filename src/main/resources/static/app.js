@@ -1,7 +1,7 @@
 // Smart Discount Generator - Frontend Application
 class SmartDiscountGenerator {
     constructor() {
-        this.apiBaseUrl = 'http://localhost:8080/api';
+        this.apiBaseUrl = 'http://localhost:8081/api';
         this.currentUserId = 'user-001';
         this.currentProduct = null;
         this.allProducts = [];

@@ -434,14 +434,18 @@ function displayMarketInsights(insights) {
         return;
     }
     
-    if (Array.isArray(insights)) {
-        elements.marketInsights.innerHTML = insights.map(insight => 
-            `<div class="insight-item"><i class="fas fa-chart-line"></i> ${insight}</div>`
-        ).join('');
-    } else if (typeof insights === 'object') {
-        // Handle object insights - extract meaningful data
-        const insightItems = [];
-        
+    let insightItems = [];
+    
+    // Handle insights from backend: {analysis_type: "...", insights: [...]}
+    if (insights.insights && Array.isArray(insights.insights)) {
+        insightItems = insights.insights;
+    }
+    // Handle direct array format
+    else if (Array.isArray(insights)) {
+        insightItems = insights;
+    } 
+    // Handle object with various properties
+    else if (typeof insights === 'object') {
         if (insights.market_impact) {
             insightItems.push(`Market Impact: ${insights.market_impact}`);
         }
@@ -458,41 +462,32 @@ function displayMarketInsights(insights) {
             insightItems.push(`Seasonal Trends: ${insights.seasonal_trends}`);
         }
         
-        // If object has array properties, extract them
-        if (insights.insights && Array.isArray(insights.insights)) {
-            insightItems.push(...insights.insights);
-        }
-        
         // If no specific properties found, try to extract values
         if (insightItems.length === 0) {
             Object.keys(insights).forEach(key => {
-                if (typeof insights[key] === 'string') {
+                if (typeof insights[key] === 'string' && key !== 'analysis_type') {
                     insightItems.push(`${key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}: ${insights[key]}`);
                 }
             });
         }
-        
-        // Fallback if still no insights
-        if (insightItems.length === 0) {
-            insightItems.push('Advanced market analysis completed');
-            insightItems.push('Competitive intelligence gathered');
-            insightItems.push('Customer segmentation analyzed');
-        }
-        
-        elements.marketInsights.innerHTML = insightItems.map(insight => 
-            `<div class="insight-item"><i class="fas fa-chart-line"></i> ${insight}</div>`
-        ).join('');
-        
-    } else if (typeof insights === 'string') {
-        elements.marketInsights.innerHTML = `<div class="insight-item"><i class="fas fa-chart-line"></i> ${insights}</div>`;
-    } else {
-        // Unknown format, show fallback
-        elements.marketInsights.innerHTML = `
-            <div class="insight-item"><i class="fas fa-chart-line"></i> Market conditions analyzed</div>
-            <div class="insight-item"><i class="fas fa-trending-up"></i> Pricing strategy optimized</div>
-            <div class="insight-item"><i class="fas fa-users"></i> Customer insights gathered</div>
-        `;
+    } 
+    // Handle string format
+    else if (typeof insights === 'string') {
+        insightItems = [insights];
     }
+    
+    // Fallback if still no insights
+    if (insightItems.length === 0) {
+        insightItems = [
+            'Advanced market analysis completed',
+            'Competitive intelligence gathered',
+            'Customer segmentation analyzed'
+        ];
+    }
+    
+    elements.marketInsights.innerHTML = insightItems.map(insight => 
+        `<div class="insight-item"><i class="fas fa-chart-line"></i> ${insight}</div>`
+    ).join('');
 }
 
 /**
@@ -695,15 +690,40 @@ async function sendChatMessage() {
             // Add AI response
             addChatMessage(data.message, 'assistant');
             
-            // If there are suggestions (like discounts), show them
+            // If there are suggestions (like discounts or products), show them
             if (data.suggestions && data.suggestions.length > 0) {
-                const suggestionsHtml = data.suggestions.map(suggestion => 
-                    `<div class="chat-suggestion">
-                        💡 <strong>${suggestion.discount}</strong> discount available!
-                        <br><small>${suggestion.reasoning}</small>
-                        <br><small>Confidence: ${(suggestion.confidence * 100).toFixed(1)}%</small>
-                    </div>`
-                ).join('');
+                const suggestionsHtml = data.suggestions.map(suggestion => {
+                    if (suggestion.type === 'product_recommendation') {
+                        return `<div class="chat-suggestion product-suggestion">
+                            🎧 <strong>${suggestion.product_name}</strong>
+                            <br>� <span style="color: #5468ff; font-weight: bold;">${suggestion.price}</span>
+                            <br>⭐ ${suggestion.rating} (${suggestion.reviews})
+                            <br>🔧 ${suggestion.key_features}
+                            <br><small style="color: #666;">✨ ${suggestion.reasoning}</small>
+                        </div>`;
+                    } else if (suggestion.type === 'discount_opportunity') {
+                        return `<div class="chat-suggestion discount-suggestion">
+                            💰 <strong>${suggestion.product_name || 'Special Offer'}</strong>
+                            <br>🏷️ <span style="color: #ff6b6b; font-weight: bold;">${suggestion.discount || suggestion.discounted_price}</span>
+                            ${suggestion.original_price ? `<span style="text-decoration: line-through; color: #999;"> ${suggestion.original_price}</span>` : ''}
+                            <br><small style="color: #666;">✨ ${suggestion.reasoning}</small>
+                            ${suggestion.confidence ? `<br><small>Confidence: ${(suggestion.confidence * 100).toFixed(1)}%</small>` : ''}
+                        </div>`;
+                    } else if (suggestion.type === 'eco_product') {
+                        return `<div class="chat-suggestion eco-suggestion">
+                            🌱 <strong>${suggestion.product_name}</strong>
+                            <br>💰 ${suggestion.price}
+                            <br>⭐ ${suggestion.rating} | 🌍 Eco Score: ${suggestion.eco_score}
+                            <br><small style="color: #666;">✨ ${suggestion.reasoning}</small>
+                        </div>`;
+                    } else {
+                        return `<div class="chat-suggestion">
+                            💡 <strong>${suggestion.discount || suggestion.product_name || 'Recommendation'}</strong>
+                            <br><small>${suggestion.reasoning}</small>
+                            ${suggestion.confidence ? `<br><small>Confidence: ${(suggestion.confidence * 100).toFixed(1)}%</small>` : ''}
+                        </div>`;
+                    }
+                }).join('');
                 addChatMessage(suggestionsHtml, 'assistant');
             }
         } else {
